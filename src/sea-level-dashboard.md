@@ -31,6 +31,17 @@ svg rect, svg path, svg circle, svg text {
   transition: opacity 0.5s ease-in-out, fill 0.5s ease-in-out;
 }
 
+/* Prevent scroll anchoring on all content */
+* {
+  overflow-anchor: none !important;
+}
+
+/* Prevent cards and charts from causing scroll jumps */
+.card, .card > *, .card svg, .card figure {
+  overflow-anchor: none !important;
+  contain: layout style paint;
+}
+
 .year-control-overlay {
   position: fixed;
   right: 20px;
@@ -145,6 +156,42 @@ const selectedYear = view(Inputs.range([1880, latestYear], {
 
   <div class="year-display-overlay">${selectedYear}</div>
 </div>
+
+```js
+// Aggressively preserve scroll position during year changes
+{
+  let preservedScrollY = window.scrollY || window.pageYOffset;
+  let isUserScrolling = false;
+  let scrollTimeout;
+
+  // Track user scrolling
+  window.addEventListener('scroll', () => {
+    if (!isUserScrolling) {
+      isUserScrolling = true;
+      preservedScrollY = window.scrollY || window.pageYOffset;
+    }
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      isUserScrolling = false;
+      preservedScrollY = window.scrollY || window.pageYOffset;
+    }, 100);
+  }, { passive: true });
+
+  // Restore scroll position on any unexpected scroll caused by re-renders
+  const observer = new MutationObserver(() => {
+    const currentScroll = window.scrollY || window.pageYOffset;
+    if (!isUserScrolling && Math.abs(currentScroll - preservedScrollY) > 5) {
+      window.scrollTo(0, preservedScrollY);
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: false
+  });
+}
+```
 
 ```js
 const selectedDataset = view(Inputs.select(
@@ -424,148 +471,6 @@ function horizonChart({width} = {}) {
 
 ---
 
-## 📅 Calendar Heatmap - Annual Rate of Change Patterns
-
-```js
-// Prepare calendar data with rate of change
-const calendarData = csiroData.slice(1).map((d, i) => {
-  const prevValue = csiroData[i].value;
-  const rate = d.value - prevValue;
-  const decade = Math.floor(d.year / 10) * 10;
-  const yearInDecade = d.year % 10;
-
-  return {
-    year: d.year,
-    rate: rate,
-    decade: decade,
-    yearInDecade: yearInDecade,
-    decadeLabel: `${decade}s`,
-    absValue: d.value
-  };
-}).filter(d => d.year >= 1880 && d.year <= latestYear);
-```
-
-```js
-function calendarHeatmap({width} = {}) {
-  const cellSize = Math.min(40, (width - 120) / 14);
-  const decades = Array.from(new Set(calendarData.map(d => d.decade))).sort();
-
-  return Plot.plot({
-    width,
-    height: decades.length * (cellSize + 4) + 60,
-    marginLeft: 80,
-    marginRight: 40,
-    marginTop: 30,
-    marginBottom: 30,
-    padding: 0,
-    x: {
-      label: null,
-      domain: d3.range(0, 10),
-      axis: "top",
-      tickFormat: d => d
-    },
-    fy: {
-      label: null,
-      domain: decades.map(d => `${d}s`),
-      tickFormat: d => d
-    },
-    color: {
-      scheme: "RdBu",
-      reverse: true,
-      domain: d3.extent(calendarData, d => d.rate),
-      legend: true,
-      label: "Annual Change (inches)"
-    },
-    marks: [
-      // Heatmap cells
-      Plot.cell(calendarData, {
-        x: "yearInDecade",
-        fy: "decadeLabel",
-        fill: "rate",
-        inset: 2,
-        rx: 4,
-        tip: true,
-        title: d => `${d.year}\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(3)} in/year\nTotal: ${d.absValue.toFixed(2)} inches`
-      }),
-      // Year labels for first and last of each decade
-      Plot.text(calendarData.filter(d => d.yearInDecade === 0 || d.yearInDecade === 9), {
-        x: "yearInDecade",
-        fy: "decadeLabel",
-        text: "year",
-        fontSize: 9,
-        fill: "#1f2937",
-        fontWeight: "bold",
-        textAnchor: "middle",
-        dy: 1
-      }),
-      // Current year highlight
-      Plot.frame({
-        fy: calendarData.filter(d => d.year === selectedYear).map(d => d.decadeLabel),
-        stroke: "#f59e0b",
-        strokeWidth: 3,
-        inset: -2
-      })
-    ]
-  });
-}
-```
-
-<div class="card">
-  ${resize((width) => calendarHeatmap({width}))}
-</div>
-
----
-
-## Decade Comparison
-
-```js
-const decadeData = [
-  {decade: "1880-1889", value: epaData.filter(d => d.year >= 1880 && d.year < 1890).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1890-1899", value: epaData.filter(d => d.year >= 1890 && d.year < 1900).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1900-1909", value: epaData.filter(d => d.year >= 1900 && d.year < 1910).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1910-1919", value: epaData.filter(d => d.year >= 1910 && d.year < 1920).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1920-1929", value: epaData.filter(d => d.year >= 1920 && d.year < 1930).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1930-1939", value: epaData.filter(d => d.year >= 1930 && d.year < 1940).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1940-1949", value: epaData.filter(d => d.year >= 1940 && d.year < 1950).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1950-1959", value: epaData.filter(d => d.year >= 1950 && d.year < 1960).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1960-1969", value: epaData.filter(d => d.year >= 1960 && d.year < 1970).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1970-1979", value: epaData.filter(d => d.year >= 1970 && d.year < 1980).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1980-1989", value: epaData.filter(d => d.year >= 1980 && d.year < 1990).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "1990-1999", value: epaData.filter(d => d.year >= 1990 && d.year < 2000).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "2000-2009", value: epaData.filter(d => d.year >= 2000 && d.year < 2010).reduce((sum, d) => sum + d.value, 0) / 10},
-  {decade: "2010-2019", value: csiroData.filter(d => d.year >= 2010 && d.year < 2020).reduce((sum, d) => sum + d.value, 0) / 10},
-];
-```
-
-```js
-function decadeChart(data, {width} = {}) {
-  return Plot.plot({
-    title: "Average Sea Level by Decade",
-    width,
-    height: 350,
-    marginLeft: 60,
-    marginBottom: 80,
-    x: {label: null, tickRotate: -45},
-    y: {label: "Average Sea Level (inches)", grid: true},
-    marks: [
-      Plot.barY(data, {
-        x: "decade",
-        y: "value",
-        fill: d => d.value < 1 ? "#059669" : d.value < 3 ? "#f59e0b" : "#dc2626",
-        tip: true
-      }),
-      Plot.ruleY([0])
-    ]
-  });
-}
-```
-
-<div class="card">
-  ${resize((width) => decadeChart(decadeData, {width}))}
-</div>
-
----
-
 ## 🔄 Connected Scatterplot - Sea Level vs Rate of Change
 
 ```js
@@ -675,6 +580,151 @@ function connectedScatterplot({width} = {}) {
 
 <div class="card">
   ${resize((width) => connectedScatterplot({width}))}
+</div>
+
+---
+
+## 📅 Calendar Heatmap - Annual Rate of Change Patterns
+
+```js
+// Prepare calendar data with rate of change
+const calendarData = csiroData.slice(1).map((d, i) => {
+  const prevValue = csiroData[i].value;
+  const rate = d.value - prevValue;
+  const decade = Math.floor(d.year / 10) * 10;
+  const yearInDecade = d.year % 10;
+
+  return {
+    year: d.year,
+    rate: rate,
+    decade: decade,
+    yearInDecade: yearInDecade,
+    decadeLabel: `${decade}s`,
+    absValue: d.value
+  };
+}).filter(d => d.year >= 1880 && d.year <= latestYear);
+```
+
+```js
+function calendarHeatmap({width} = {}) {
+  const cellSize = Math.min(40, (width - 120) / 14);
+  const decades = Array.from(new Set(calendarData.map(d => d.decade))).sort();
+
+  return Plot.plot({
+    width,
+    height: decades.length * (cellSize + 4) + 60,
+    marginLeft: 80,
+    marginRight: 40,
+    marginTop: 30,
+    marginBottom: 30,
+    padding: 0,
+    x: {
+      label: null,
+      domain: d3.range(0, 10),
+      axis: "top",
+      tickFormat: d => d
+    },
+    fy: {
+      label: null,
+      domain: decades.map(d => `${d}s`),
+      tickFormat: d => d
+    },
+    color: {
+      scheme: "RdBu",
+      reverse: true,
+      domain: d3.extent(calendarData, d => d.rate),
+      legend: true,
+      label: "Annual Change (inches)"
+    },
+    marks: [
+      // Heatmap cells
+      Plot.cell(calendarData, {
+        x: "yearInDecade",
+        fy: "decadeLabel",
+        fill: "rate",
+        inset: 2,
+        rx: 4,
+        tip: true,
+        title: d => `${d.year}\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(3)} in/year\nTotal: ${d.absValue.toFixed(2)} inches`
+      }),
+      // Current year highlight cell (non-scroll-causing)
+      Plot.cell(calendarData.filter(d => d.year === selectedYear), {
+        x: "yearInDecade",
+        fy: "decadeLabel",
+        fill: "none",
+        stroke: "#f59e0b",
+        strokeWidth: 4,
+        inset: -1,
+        rx: 4
+      }),
+      // Year labels for first and last of each decade
+      Plot.text(calendarData.filter(d => d.yearInDecade === 0 || d.yearInDecade === 9), {
+        x: "yearInDecade",
+        fy: "decadeLabel",
+        text: "year",
+        fontSize: 9,
+        fill: "#1f2937",
+        fontWeight: "bold",
+        textAnchor: "middle",
+        dy: 1
+      })
+    ]
+  });
+}
+```
+
+<div class="card">
+  ${resize((width) => calendarHeatmap({width}))}
+</div>
+
+---
+
+## Decade Comparison
+
+```js
+const decadeData = [
+  {decade: "1880-1889", value: epaData.filter(d => d.year >= 1880 && d.year < 1890).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1890-1899", value: epaData.filter(d => d.year >= 1890 && d.year < 1900).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1900-1909", value: epaData.filter(d => d.year >= 1900 && d.year < 1910).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1910-1919", value: epaData.filter(d => d.year >= 1910 && d.year < 1920).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1920-1929", value: epaData.filter(d => d.year >= 1920 && d.year < 1930).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1930-1939", value: epaData.filter(d => d.year >= 1930 && d.year < 1940).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1940-1949", value: epaData.filter(d => d.year >= 1940 && d.year < 1950).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1950-1959", value: epaData.filter(d => d.year >= 1950 && d.year < 1960).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1960-1969", value: epaData.filter(d => d.year >= 1960 && d.year < 1970).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1970-1979", value: epaData.filter(d => d.year >= 1970 && d.year < 1980).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1980-1989", value: epaData.filter(d => d.year >= 1980 && d.year < 1990).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "1990-1999", value: epaData.filter(d => d.year >= 1990 && d.year < 2000).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "2000-2009", value: epaData.filter(d => d.year >= 2000 && d.year < 2010).reduce((sum, d) => sum + d.value, 0) / 10},
+  {decade: "2010-2019", value: csiroData.filter(d => d.year >= 2010 && d.year < 2020).reduce((sum, d) => sum + d.value, 0) / 10},
+];
+```
+
+```js
+function decadeChart(data, {width} = {}) {
+  return Plot.plot({
+    title: "Average Sea Level by Decade",
+    width,
+    height: 350,
+    marginLeft: 60,
+    marginBottom: 80,
+    x: {label: null, tickRotate: -45},
+    y: {label: "Average Sea Level (inches)", grid: true},
+    marks: [
+      Plot.barY(data, {
+        x: "decade",
+        y: "value",
+        fill: d => d.value < 1 ? "#059669" : d.value < 3 ? "#f59e0b" : "#dc2626",
+        tip: true
+      }),
+      Plot.ruleY([0])
+    ]
+  });
+}
+```
+
+<div class="card">
+  ${resize((width) => decadeChart(decadeData, {width}))}
 </div>
 
 ---
