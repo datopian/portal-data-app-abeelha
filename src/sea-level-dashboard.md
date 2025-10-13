@@ -30,6 +30,65 @@ toc: false
 svg rect, svg path, svg circle, svg text {
   transition: opacity 0.5s ease-in-out, fill 0.5s ease-in-out;
 }
+
+.year-control-overlay {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem 1rem;
+  border-radius: 12px;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  width: 160px;
+  backdrop-filter: blur(10px);
+}
+
+.year-control-overlay h3 {
+  color: white;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.year-control-overlay .year-display-overlay {
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin: 0.75rem 0 0.25rem 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
+
+.year-control-overlay input[type="range"] {
+  width: 100%;
+  margin: 0.5rem 0;
+  cursor: pointer;
+}
+
+.year-control-overlay label,
+.year-control-overlay span,
+.year-control-overlay div {
+  color: white !important;
+}
+
+.year-control-overlay form {
+  width: 100%;
+}
+
+.year-control-overlay input[type="number"] {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.2rem;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.85rem;
+  width: 100%;
+}
 </style>
 
 <div class="hero">
@@ -72,14 +131,20 @@ const allData = [...epaData, ...csiroData, ...satData];
 ```js
 // Get the latest year with actual data
 const latestYear = Math.max(...csiroData.map(d => d.year));
+```
 
-// Controls
+<div class="year-control-overlay">
+  <h3>📅 Year Control</h3>
+
+```js
 const selectedYear = view(Inputs.range([1880, latestYear], {
-  label: "Year",
   step: 1,
   value: 1993
 }));
 ```
+
+  <div class="year-display-overlay">${selectedYear}</div>
+</div>
 
 ```js
 const selectedDataset = view(Inputs.select(
@@ -87,8 +152,6 @@ const selectedDataset = view(Inputs.select(
   {label: "Dataset", value: "All"}
 ));
 ```
-
-<div class="year-display">${selectedYear}</div>
 
 ```js
 // Filter data
@@ -821,6 +884,21 @@ function spiralTimeline({width} = {}) {
 // Calculate total rise correctly
 const latestCSIRO = csiroData[csiroData.length - 1];
 const totalRise = latestCSIRO ? latestCSIRO.value.toFixed(1) : "N/A";
+
+// Calculate years with highest increases
+const yearlyIncreases = csiroData.slice(1).map((d, i) => ({
+  year: d.year,
+  increase: d.value - csiroData[i].value,
+  value: d.value
+})).filter(d => d.year >= 1900);
+
+// Sort by increase and get top 5
+const topIncreases = yearlyIncreases
+  .sort((a, b) => b.increase - a.increase)
+  .slice(0, 5);
+
+const topYears = topIncreases.map(d => d.year).join(", ");
+const topYear = topIncreases[0];
 ```
 
 This dashboard visualizes global mean sea level rise from 1880 to ${latestYear} using three authoritative datasets:
@@ -835,6 +913,8 @@ All measurements show change relative to the 1900 baseline.
 
 - Sea levels have risen approximately **${totalRise} inches** since 1880
 - The rate of rise has **accelerated** from ~0.6 in/decade (1900-1990) to ~1.2 in/decade (1993-${latestYear})
+- **Highest annual increase**: **${topYear.year}** with **+${topYear.increase.toFixed(3)} inches** in a single year
+- **Years with largest increases**: ${topYears} (top 5 years since 1900)
 - Multiple independent datasets show **consistent trends**
 - Satellite measurements (1993+) show the highest precision and confirm acceleration
 
