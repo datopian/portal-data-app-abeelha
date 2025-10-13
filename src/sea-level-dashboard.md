@@ -108,6 +108,8 @@ const currentCSIRO = csiroData.find(d => d.year === selectedYear);
 const currentSat = satData.find(d => d.year === selectedYear);
 ```
 
+**Sea Level Rise for Selected Year:** The values below show how much sea levels have increased (in inches) relative to the 1900 baseline, according to each dataset.
+
 <div class="grid grid-cols-3">
   <div class="card">
     <h3>EPA/CSIRO</h3>
@@ -244,7 +246,7 @@ function seaLevelChart(data, {width} = {}) {
 ```js
 function horizonChart({width} = {}) {
   const bands = 4;
-  const bandHeight = 30;
+  const bandHeight = 50;
   const height = bandHeight * bands;
   const datasets = ["EPA/CSIRO", "CSIRO", "Satellite"];
 
@@ -264,7 +266,7 @@ function horizonChart({width} = {}) {
 
   return Plot.plot({
     width,
-    height: height * 3 + 80,
+    height: height * 3 + 120,
     marginLeft: 100,
     marginRight: 20,
     marginTop: 30,
@@ -728,7 +730,7 @@ function spiralTimeline({width} = {}) {
 
   const legendScale = d3.scaleLinear()
     .domain([0, legendWidth])
-    .range([d3.max(spiralData, d => d.value), d3.min(spiralData, d => d.value)]);
+    .range([d3.min(spiralData, d => d.value), d3.max(spiralData, d => d.value)]);
 
   svg.append("g")
     .selectAll("rect")
@@ -745,7 +747,7 @@ function spiralTimeline({width} = {}) {
     .attr("y", legendY - 5)
     .attr("font-size", "10px")
     .attr("fill", "#94a3b8")
-    .text(`${d3.max(spiralData, d => d.value).toFixed(1)}"`);
+    .text(`${d3.min(spiralData, d => d.value).toFixed(1)}"`);
 
   svg.append("text")
     .attr("x", legendX + legendWidth)
@@ -753,7 +755,7 @@ function spiralTimeline({width} = {}) {
     .attr("text-anchor", "end")
     .attr("font-size", "10px")
     .attr("fill", "#94a3b8")
-    .text(`${d3.min(spiralData, d => d.value).toFixed(1)}"`);
+    .text(`${d3.max(spiralData, d => d.value).toFixed(1)}"`);
 
   // Add interactivity
   segments.on("mouseenter", function(event, d) {
