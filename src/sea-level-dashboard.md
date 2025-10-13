@@ -135,38 +135,40 @@ const recentAvg = d3.mean(csiroData.filter(d => d.year >= 1993 && d.year <= late
 const currentValue = currentCSIRO ? currentCSIRO.value : 0;
 
 // Rate calculations
-const hist1900Rate = csiroData.filter(d => d.year >= 1900 && d.year <= 1990)
-  .slice(-10).reduce((sum, d, i, arr) => {
-    if (i === 0) return 0;
-    return sum + (d.value - arr[i-1].value);
-  }, 0) / 9 * 10;
+const hist1900Data = csiroData.filter(d => d.year >= 1900 && d.year <= 1990);
+const hist1900Rate = hist1900Data.length > 1
+  ? ((hist1900Data[hist1900Data.length - 1].value - hist1900Data[0].value) / (hist1900Data.length - 1)) * 10
+  : 0;
 
-const recent1993Rate = csiroData.filter(d => d.year >= 1993 && d.year <= latestYear)
-  .slice(-10).reduce((sum, d, i, arr) => {
-    if (i === 0) return 0;
-    return sum + (d.value - arr[i-1].value);
-  }, 0) / 9 * 10;
+const recent1993Data = csiroData.filter(d => d.year >= 1993 && d.year <= latestYear);
+const recent1993Rate = recent1993Data.length > 1
+  ? ((recent1993Data[recent1993Data.length - 1].value - recent1993Data[0].value) / (recent1993Data.length - 1)) * 10
+  : 0;
 
 // Acceleration
-const acceleration = ((recent1993Rate - hist1900Rate) / hist1900Rate * 100);
+const acceleration = hist1900Rate > 0 ? ((recent1993Rate - hist1900Rate) / hist1900Rate * 100) : 0;
 
 // Percentile of current value
 const sortedValues = csiroData.map(d => d.value).sort((a, b) => a - b);
 const percentile = (sortedValues.filter(v => v <= currentValue).length / sortedValues.length * 100);
 
-// Simple linear extrapolation to 2050
+// Simple linear extrapolation to 2050 (from latest year)
+const latestValue = csiroData[csiroData.length - 1].value;
 const yearsToProject = 2050 - latestYear;
-const projected2050 = currentValue + (recent1993Rate / 10 * yearsToProject);
+const projected2050 = latestValue + (recent1993Rate / 10 * yearsToProject);
 
 // Worst case (accelerated) projection
-const projected2050Accelerated = currentValue + (recent1993Rate * 1.5 / 10 * yearsToProject);
+const projected2050Accelerated = latestValue + (recent1993Rate * 1.5 / 10 * yearsToProject);
+
+// Calculate absolute difference vs historical avg
+const vsHistorical = currentValue - historicalAvg;
 ```
 
 <div class="grid grid-cols-4" style="margin-bottom: 2rem;">
   <div class="card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white;">
     <h3 style="color: white; font-size: 0.9rem;">Current vs Historical</h3>
-    <span class="big" style="color: white;">${((currentValue / historicalAvg - 1) * 100).toFixed(0)}%</span>
-    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem;">above 1900-1990 avg</p>
+    <span class="big" style="color: white;">${vsHistorical >= 0 ? '+' : ''}${vsHistorical.toFixed(1)}"</span>
+    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem;">vs 1900-1990 avg (${historicalAvg.toFixed(1)}")</p>
   </div>
   <div class="card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
     <h3 style="color: white; font-size: 0.9rem;">Rate Acceleration</h3>
@@ -720,7 +722,7 @@ function calendarHeatmap({width} = {}) {
         fy: "decadeLabel",
         text: "year",
         fontSize: 9,
-        fill: "#ffffff",
+        fill: "#1f2937",
         fontWeight: "bold",
         textAnchor: "middle",
         dy: 1
@@ -796,108 +798,135 @@ function decadeChart(data, {width} = {}) {
 ## 🏔️ Ridgeline Plot - Distribution Evolution by Decade
 
 ```js
-// Prepare ridgeline data - group by decade with distribution
-const ridgelineData = Array.from(d3.group(csiroData.filter(d => d.year >= 1880 && d.year <= latestYear), d => Math.floor(d.year / 10) * 10))
-  .map(([decade, values]) => {
-    // Create density-like distribution for each decade
-    const sorted = values.map(d => d.value).sort((a, b) => a - b);
-    const avg = d3.mean(sorted);
-    const std = d3.deviation(sorted);
+// Prepare ridgeline data with proper density calculation
+const ridgelineData = [];
 
-    return values.map((d, i) => ({
-      decade: `${decade}s`,
-      decadeNum: decade,
-      year: d.year,
-      value: d.value,
-      // Normalize for overlapping ridges
-      density: Math.exp(-Math.pow((d.value - avg) / (std || 1), 2) / 2),
-      avg: avg
-    }));
-  })
-  .flat();
+// Group data by decade and calculate proper distributions
+const decades = d3.range(1880, Math.floor(latestYear/10)*10 + 1, 10);
+
+decades.forEach(decade => {
+  const decadeData = csiroData.filter(d => d.year >= decade && d.year < decade + 10);
+
+  if (decadeData.length > 2) {
+    // Get the range for this decade
+    const values = decadeData.map(d => d.value);
+    const extent = d3.extent(values);
+    const mean = d3.mean(values);
+    const std = d3.deviation(values) || 0.5;
+
+    // Create points for the distribution curve
+    const xScale = d3.scaleLinear()
+      .domain([-2, 10])
+      .range([0, 100]);
+
+    // Generate smooth curve points
+    for (let i = 0; i <= 100; i++) {
+      const x = xScale.invert(i);
+
+      // Calculate a simple normal distribution for visualization
+      // This creates a smooth curve for each decade
+      const variance = std * std || 1;
+      const densityValue = Math.exp(-0.5 * Math.pow((x - mean) / std, 2)) / Math.sqrt(2 * Math.PI * variance);
+
+      ridgelineData.push({
+        decade: `${decade}s`,
+        decadeNum: decade,
+        value: x,
+        density: densityValue * 30, // Scale for visibility
+        mean: mean
+      });
+    }
+  }
+});
 ```
 
 ```js
 function ridgelinePlot({width} = {}) {
-  const decades = Array.from(new Set(ridgelineData.map(d => d.decade))).sort((a, b) => {
-    return parseInt(a) - parseInt(b);
-  });
-
-  const ridgeHeight = 40;
-  const overlap = 0.3; // 30% overlap
+  const decades = Array.from(new Set(ridgelineData.map(d => d.decade))).sort();
+  const ridgeHeight = 60;
 
   return Plot.plot({
     width,
-    height: decades.length * ridgeHeight * (1 - overlap) + 80,
-    marginLeft: 80,
+    height: decades.length * ridgeHeight + 100,
+    marginLeft: 100,
     marginRight: 40,
-    marginTop: 20,
+    marginTop: 30,
     marginBottom: 40,
     x: {
       label: "Sea Level Change (inches)",
       grid: true,
-      domain: [d3.min(csiroData, d => d.value), d3.max(csiroData, d => d.value)]
+      domain: [-2, 10]
     },
-    fy: {
-      label: null,
-      domain: decades
+    y: {
+      domain: [0, decades.length * ridgeHeight],
+      axis: null
     },
     color: {
-      scheme: "Turbo",
-      domain: decades.map(d => parseInt(d)),
-      legend: false
+      scheme: "Spectral",
+      domain: decades,
+      legend: true,
+      label: "Decade"
     },
     marks: [
-      // Fill areas for each decade
-      Plot.areaY(ridgelineData, {
-        x: "value",
-        y: d => d.density * ridgeHeight,
-        fy: "decade",
-        fill: "decadeNum",
-        fillOpacity: 0.7,
-        curve: "catmull-rom",
-        sort: {x: "x"}
-      }),
-      // Outline for each ridge
-      Plot.line(ridgelineData, {
-        x: "value",
-        y: d => d.density * ridgeHeight,
-        fy: "decade",
-        stroke: "decadeNum",
-        strokeWidth: 2,
-        curve: "catmull-rom",
-        sort: {x: "x"}
-      }),
-      // Baseline
-      Plot.ruleY(ridgelineData, {
-        fy: "decade",
-        y: 0,
-        stroke: "#e5e7eb",
-        strokeWidth: 1
-      }),
-      // Decade labels
-      Plot.text(decades, d => [{decade: d, x: -1, y: ridgeHeight / 2}], {
-        x: "x",
-        y: "y",
-        fy: "decade",
-        text: "decade",
-        textAnchor: "end",
-        dx: -10,
-        fill: "#64748b",
-        fontSize: 12,
-        fontWeight: "600"
-      }),
-      // Interactive tips
-      Plot.dot(ridgelineData, Plot.pointerX({
-        x: "value",
-        y: d => d.density * ridgeHeight,
-        fy: "decade",
-        r: 4,
-        fill: "decadeNum",
-        stroke: "white",
-        strokeWidth: 2,
-        title: d => `${d.decade}\n${d.year}: ${d.value.toFixed(2)} inches\nDecade avg: ${d.avg.toFixed(2)} inches`
-      }))
+      // Create ridgelines for each decade 
+      ...decades.map((decade, i) => {
+        const decadeData = ridgelineData.filter(d => d.decade === decade);
+        const yOffset = (decades.length - i - 1) * ridgeHeight;
+
+        return [
+          // Fill area
+          Plot.areaY(decadeData, {
+            x: "value",
+            y1: yOffset,
+            y2: d => yOffset + d.density,
+            fill: decade,
+            fillOpacity: 0.6,
+            curve: "basis"
+          }),
+          // Outline
+          Plot.line(decadeData, {
+            x: "value",
+            y: d => yOffset + d.density,
+            stroke: decade,
+            strokeWidth: 2,
+            curve: "basis"
+          }),
+          // Baseline
+          Plot.ruleY([yOffset], {
+            stroke: "#e5e7eb",
+            strokeWidth: 0.5
+          }),
+          // Label
+          Plot.text([decade], {
+            x: -1.5,
+            y: yOffset + 20,
+            text: d => d,
+            textAnchor: "end",
+            fontSize: 12,
+            fontWeight: "bold",
+            fill: "#475569"
+          })
+        ];
+      }).flat(),
+      // Add mean indicators
+      Plot.dot(
+        decades.map(decade => {
+          const decadeData = ridgelineData.filter(d => d.decade === decade);
+          const meanValue = decadeData[0]?.mean || 0;
+          const yOffset = (decades.length - decades.indexOf(decade) - 1) * ridgeHeight;
+          return {decade, value: meanValue, y: yOffset + 35};
+        }),
+        {
+          x: "value",
+          y: "y",
+          r: 4,
+          fill: "decade",
+          stroke: "white",
+          strokeWidth: 2,
+          tip: true,
+          title: d => `${d.decade} mean: ${d.value.toFixed(2)}"`
+        }
+      )
     ]
   });
 }
