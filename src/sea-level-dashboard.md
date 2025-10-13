@@ -118,11 +118,11 @@ const satRaw = FileAttachment("data/CSIRO_Alt_yearly.csv").csv({typed: true});
 // Normalize data
 const epaData = (await epaRaw).map(d => ({
   year: +d.Year,
-  value: +d["CSIRO Adjusted Sea Level"] || 0,
-  lower: +d["Lower Error Bound"] || 0,
-  upper: +d["Upper Error Bound"] || 0,
+  value: +d["CSIRO Adjusted Sea Level"],
+  lower: +d["Lower Error Bound"],
+  upper: +d["Upper Error Bound"],
   source: "EPA/CSIRO"
-})).filter(d => d.year >= 1880 && d.year <= 2023);
+})).filter(d => d.year >= 1880 && d.year <= 2023 && !isNaN(d.value) && d.value !== 0);
 
 const csiroData = (await csiroRaw).map(d => ({
   year: +d.Time,
