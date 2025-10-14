@@ -218,7 +218,9 @@ const currentCSIRO = csiroData.find(d => d.year === selectedYear);
 const currentSat = satData.find(d => d.year === selectedYear);
 ```
 
-**Sea Level Rise for Selected Year:** The values below show how much sea levels have increased (in inches) relative to the 1900 baseline, according to each dataset.
+## Sea Level Rise for Selected Year
+
+The values below show how much sea levels have increased (in inches) relative to the 1900 baseline, according to each dataset.
 
 <div class="grid grid-cols-3">
   <div class="card">
@@ -503,66 +505,39 @@ function connectedScatterplot({width} = {}) {
     marginBottom: 60,
     grid: true,
     x: {
-      label: "Sea Level Change (inches)",
+      label: "Year",
+      domain: [1880, latestYear],
       nice: true
     },
     y: {
       label: "Rate of Change (inches/decade)",
       nice: true
     },
-    color: {
-      type: "linear",
-      domain: [1880, latestYear],
-      scheme: "Spectral",
-      reverse: false,
-      legend: true,
-      label: "Year"
-    },
     marks: [
       // Connected path showing temporal progression
       Plot.line(scatterData, {
-        x: "value",
+        x: "year",
         y: "rate",
-        stroke: "year",
+        stroke: "#059669",
         strokeWidth: 2,
         curve: "catmull-rom"
       }),
       // Dots for each year
       Plot.dot(scatterData, {
-        x: "value",
+        x: "year",
         y: "rate",
-        fill: "year",
+        fill: "#059669",
         r: 3,
         stroke: "white",
         strokeWidth: 1,
         tip: true,
         title: d => `${d.year}\nSea Level: ${d.value.toFixed(2)} in\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(2)} in/decade`
       }),
-      // Arrows showing direction (every 10 years)
-      Plot.arrow(
-        scatterData.filter((d, i) => i % 10 === 0 && i < scatterData.length - 1),
-        {
-          x1: "value",
-          y1: "rate",
-          x2: (d, i, data) => {
-            const nextIndex = scatterData.findIndex(item => item.year === d.year + 10);
-            return nextIndex >= 0 ? scatterData[nextIndex].value : d.value;
-          },
-          y2: (d, i, data) => {
-            const nextIndex = scatterData.findIndex(item => item.year === d.year + 10);
-            return nextIndex >= 0 ? scatterData[nextIndex].rate : d.rate;
-          },
-          stroke: "year",
-          strokeWidth: 1.5,
-          headLength: 8,
-          headAngle: 45
-        }
-      ),
       // Highlight selected year
       Plot.dot(
         scatterData.filter(d => d.year === selectedYear),
         {
-          x: "value",
+          x: "year",
           y: "rate",
           r: 8,
           fill: "#f59e0b",
@@ -572,7 +547,7 @@ function connectedScatterplot({width} = {}) {
       ),
       // Reference lines
       Plot.ruleY([0], {stroke: "#94a3b8", strokeDasharray: "4,4"}),
-      Plot.ruleX([0], {stroke: "#94a3b8", strokeDasharray: "4,4"})
+      Plot.ruleX([selectedYear], {stroke: "#f59e0b", strokeWidth: 2})
     ]
   });
 }
