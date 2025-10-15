@@ -103,8 +103,8 @@ svg rect, svg path, svg circle, svg text {
 </style>
 
 <div class="hero">
-  <h1>🌊 Global Sea Level Rise Dashboard</h1>
-  <p>Tracking 140+ years of sea level changes</p>
+  <h1>🌊 Global Mean Sea Level Rise Dashboard</h1>
+  <p>This data contains cumulative changes in sea level for the world’s oceans since 1880, based on a combination of long-term tide gauge measurements and recent satellite measurements.</p>
 </div>
 
 ```js
@@ -150,7 +150,7 @@ const latestYear = Math.max(...csiroData.map(d => d.year));
 ```js
 const selectedYear = view(Inputs.range([1880, latestYear], {
   step: 1,
-  value: 1993
+  value: latestYear
 }));
 ```
 
@@ -947,6 +947,7 @@ Since the start of the altimeter record in 1993, global average sea level rose a
 - https://datahub.io/core/sea-level-rise
 - https://github.com/datasets/sea-level-rise
 - https://www.epa.gov/climate-indicators/climate-change-indicators-sea-level
+- https://www.cmar.csiro.au/sealevel/sl_hist_last_decades.html
 
 ---
 
