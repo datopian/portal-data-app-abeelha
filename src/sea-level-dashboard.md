@@ -229,7 +229,7 @@ Satellite data are based solely on measured sea level, while the long-term tide 
 ---
 ## Sea Level Rise for Selected Year
 
-The values below show how much sea levels have increased (in inches) relative to the 1900 baseline, according to each dataset.
+The values below show the sea level measurements (in inches) from each dataset for the selected year.
 
 <div class="grid grid-cols-3">
   <div class="card">
@@ -249,66 +249,7 @@ The values below show how much sea levels have increased (in inches) relative to
   </div>
 </div>
 
-## 📈 Statistical Insights
-
-```js
-// Calculate comprehensive statistics
-const historicalAvg = d3.mean(csiroData.filter(d => d.year >= 1900 && d.year <= 1990), d => d.value);
-const recentAvg = d3.mean(csiroData.filter(d => d.year >= 1993 && d.year <= latestYear), d => d.value);
-const currentValue = currentCSIRO ? currentCSIRO.value : 0;
-
-// Rate calculations
-const hist1900Data = csiroData.filter(d => d.year >= 1900 && d.year <= 1990);
-const hist1900Rate = hist1900Data.length > 1
-  ? ((hist1900Data[hist1900Data.length - 1].value - hist1900Data[0].value) / (hist1900Data.length - 1)) * 10
-  : 0;
-
-const recent1993Data = csiroData.filter(d => d.year >= 1993 && d.year <= latestYear);
-const recent1993Rate = recent1993Data.length > 1
-  ? ((recent1993Data[recent1993Data.length - 1].value - recent1993Data[0].value) / (recent1993Data.length - 1)) * 10
-  : 0;
-
-// Acceleration
-const acceleration = hist1900Rate > 0 ? ((recent1993Rate - hist1900Rate) / hist1900Rate * 100) : 0;
-
-// Percentile of current value
-const sortedValues = csiroData.map(d => d.value).sort((a, b) => a - b);
-const percentile = (sortedValues.filter(v => v <= currentValue).length / sortedValues.length * 100);
-
-// Simple linear extrapolation to 2050 (from latest year)
-const latestValue = csiroData[csiroData.length - 1].value;
-const yearsToProject = 2050 - latestYear;
-const projected2050 = latestValue + (recent1993Rate / 10 * yearsToProject);
-
-// Worst case (accelerated) projection
-const projected2050Accelerated = latestValue + (recent1993Rate * 1.5 / 10 * yearsToProject);
-
-// Calculate absolute difference vs historical avg
-const vsHistorical = currentValue - historicalAvg;
-```
-
-<div class="grid grid-cols-4" style="margin-bottom: 2rem;">
-  <div class="card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white;">
-    <h3 style="color: white; font-size: 0.9rem;">Current vs Historical</h3>
-    <span class="big" style="color: white;">${vsHistorical >= 0 ? '+' : ''}${vsHistorical.toFixed(1)}"</span>
-    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem;">vs 1900-1990 avg (${historicalAvg.toFixed(1)}")</p>
-  </div>
-  <div class="card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
-    <h3 style="color: white; font-size: 0.9rem;">Rate Acceleration</h3>
-    <span class="big" style="color: white;">${acceleration.toFixed(0)}%</span>
-    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem;">faster than 20th century</p>
-  </div>
-  <div class="card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white;">
-    <h3 style="color: white; font-size: 0.9rem;">Current Percentile</h3>
-    <span class="big" style="color: white;">${percentile.toFixed(0)}th</span>
-    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem;">of all recorded values</p>
-  </div>
-  <div class="card" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white;">
-    <h3 style="color: white; font-size: 0.9rem;">2050 Projection</h3>
-    <span class="big" style="color: white;">${projected2050.toFixed(1)}"</span>
-    <p style="color: rgba(255,255,255,0.8); font-size: 0.85rem;">current trend (${projected2050Accelerated.toFixed(1)}" if accelerates)</p>
-  </div>
-</div>
+---
 
 ## Sea Level Change Over Time
 
