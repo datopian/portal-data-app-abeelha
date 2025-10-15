@@ -229,7 +229,7 @@ Satellite data are based solely on measured sea level, while the long-term tide 
 ---
 ## Sea Level Rise for Selected Year
 
-The values below show the sea level measurements (in inches) from each dataset for the selected year.
+The values below show the sea level measurements (in inches) from each dataset for the selected year. **EPA** data is already in inches from the CSV. **CSIRO** data is converted from millimeters to inches (÷ 25.4). **Satellite** data is also converted from millimeters to inches (÷ 25.4).
 
 <div class="grid grid-cols-3">
   <div class="card">
@@ -252,6 +252,8 @@ The values below show the sea level measurements (in inches) from each dataset f
 ---
 
 ## Sea Level Change Over Time
+
+This line chart displays sea level measurements from all three datasets over time. **EPA** data (1880-2013) is shown in purple with uncertainty bands. **CSIRO** data (1880-2019) is shown in green. **Satellite** data (1993-2020) is shown in red. CSIRO and Satellite data are converted from millimeters to inches for consistency with EPA data.
 
 ```js
 const selectedDataset = view(Inputs.select(
@@ -322,6 +324,8 @@ function seaLevelChart(data, {width} = {}) {
 ---
 
 ## 🌊 Horizon View - Compact Multi-Dataset Comparison
+
+This horizon chart shows all three datasets in a compact, layered format. Each row represents one dataset (EPA, CSIRO, Satellite), with blue bands indicating the magnitude of sea level rise. Darker/higher bands represent higher sea level values. All data is displayed in inches (CSIRO and Satellite converted from millimeters).
 
 ```js
 function horizonChart({width} = {}) {
@@ -443,11 +447,13 @@ function horizonChart({width} = {}) {
 
 ## 🔄 Connected Scatterplot - Sea Level vs Rate of Change
 
+This visualization shows the annual rate of change in sea level using data from the **CSIRO Reconstructed GMSL** dataset. The raw CSIRO data is in millimeters and is converted to inches (1 inch = 25.4 mm). The rate of change is calculated by subtracting each year's sea level value from the previous year's value, showing the year-over-year difference from the CSV data.
+
 ```js
 // Prepare scatterplot data with rate of change
 const scatterData = csiroData.slice(1).map((d, i) => {
   const prevValue = csiroData[i].value;
-  const rate = (d.value - prevValue) * 10; // Rate per decade
+  const rate = d.value - prevValue;
   const decade = Math.floor(d.year / 10) * 10;
 
   return {
@@ -478,7 +484,7 @@ function connectedScatterplot({width} = {}) {
       nice: true
     },
     y: {
-      label: "Rate of Change (inches/decade)",
+      label: "Annual Rate of Change (inches/year)",
       nice: true
     },
     marks: [
@@ -499,7 +505,7 @@ function connectedScatterplot({width} = {}) {
         stroke: "white",
         strokeWidth: 1,
         tip: true,
-        title: d => `${d.year}\nSea Level: ${d.value.toFixed(2)} in\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(2)} in/decade`
+        title: d => `${d.year}\nSea Level: ${d.value.toFixed(2)} in\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(3)} in/year`
       }),
       // Highlight selected year
       Plot.dot(
@@ -528,6 +534,8 @@ function connectedScatterplot({width} = {}) {
 ---
 
 ## 📅 Calendar Heatmap - Annual Rate of Change Patterns
+
+This heatmap shows the annual rate of change using **CSIRO Reconstructed GMSL** data. Each cell represents one year, organized by decades. The color indicates the rate of change (blue = decrease, red = increase) calculated by subtracting consecutive year values from the CSV data. Data is in inches (converted from millimeters).
 
 ```js
 // Prepare calendar data with rate of change
@@ -624,6 +632,8 @@ function calendarHeatmap({width} = {}) {
 
 ## Decade Comparison
 
+This bar chart shows the average sea level for each decade. Data uses **EPA** for decades 1880-2009 and **CSIRO** for 2010-2019. The average is calculated by summing all year values within each decade and dividing by 10. All values are in inches.
+
 ```js
 const decadeData = [
   {decade: "1880-1889", value: epaData.filter(d => d.year >= 1880 && d.year < 1890).reduce((sum, d) => sum + d.value, 0) / 10},
@@ -674,12 +684,15 @@ function decadeChart(data, {width} = {}) {
 
 ## 🌀 Spiral Timeline - 140 Years in Circular View
 
+This spiral visualization displays 140 years of sea level data from **CSIRO Reconstructed GMSL** in a circular format. Each point represents one year, spiraling outward from 1880 to 2019. Colors indicate sea level magnitude (blue = lower, red = higher). Data is converted from millimeters to inches.
+
 ```js
 function spiralTimeline({width} = {}) {
   const size = Math.min(width, 700);
   const centerX = size / 2;
   const centerY = size / 2;
   const maxRadius = size / 2 - 60;
+  const minRadius = maxRadius * 0.25; // Start at 25% from center for better spacing
 
   // Prepare spiral data
   const spiralData = csiroData.filter(d => d.year >= 1880 && d.year <= latestYear);
@@ -696,7 +709,7 @@ function spiralTimeline({width} = {}) {
   spiralData.forEach((d, i) => {
     const t = i / totalYears;
     const angle = t * Math.PI * 8; // 4 full rotations
-    const radius = t * maxRadius;
+    const radius = minRadius + (t * (maxRadius - minRadius));
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
 
@@ -727,13 +740,13 @@ function spiralTimeline({width} = {}) {
       .attr("cx", (d, i) => {
         const t = i / totalYears;
         const angle = t * Math.PI * 8;
-        const radius = t * maxRadius;
+        const radius = minRadius + (t * (maxRadius - minRadius));
         return centerX + radius * Math.cos(angle);
       })
       .attr("cy", (d, i) => {
         const t = i / totalYears;
         const angle = t * Math.PI * 8;
-        const radius = t * maxRadius;
+        const radius = minRadius + (t * (maxRadius - minRadius));
         return centerY + radius * Math.sin(angle);
       })
       .attr("r", 3)
@@ -752,14 +765,14 @@ function spiralTimeline({width} = {}) {
         const index = spiralData.findIndex(item => item.year === d.year);
         const t = index / totalYears;
         const angle = t * Math.PI * 8;
-        const radius = t * maxRadius + 20;
+        const radius = minRadius + (t * (maxRadius - minRadius)) + 20;
         return centerX + radius * Math.cos(angle);
       })
       .attr("y", (d, i) => {
         const index = spiralData.findIndex(item => item.year === d.year);
         const t = index / totalYears;
         const angle = t * Math.PI * 8;
-        const radius = t * maxRadius + 20;
+        const radius = minRadius + (t * (maxRadius - minRadius)) + 20;
         return centerY + radius * Math.sin(angle);
       })
       .attr("text-anchor", "middle")
