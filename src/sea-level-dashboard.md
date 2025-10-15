@@ -203,34 +203,13 @@ const currentSat = satData.find(d => d.year === selectedYear);
 ---
 ## About This Data
 
-```js
-// Calculate total rise correctly
-const latestCSIRO = csiroData[csiroData.length - 1];
-const totalRise = latestCSIRO ? latestCSIRO.value.toFixed(1) : "N/A";
+**Global Average Absolute Sea Level Change, 1880-2014** from the US Environmental Protection Agency using data from CSIRO, 2015; NOAA, 2015.
 
-// Calculate years with highest increases
-const yearlyIncreases = csiroData.slice(1).map((d, i) => ({
-  year: d.year,
-  increase: d.value - csiroData[i].value,
-  value: d.value
-})).filter(d => d.year >= 1900);
+This data contains cumulative changes in sea level for the world's oceans since 1880, based on a combination of long-term tide gauge measurements and recent satellite measurements.
 
-// Sort by increase and get top 5
-const topIncreases = yearlyIncreases
-  .sort((a, b) => b.increase - a.increase)
-  .slice(0, 5);
+It shows **average absolute sea level change**, which refers to the height of the ocean surface, regardless of whether nearby land is rising or falling.
 
-const topYears = topIncreases.map(d => d.year).join(", ");
-const topYear = topIncreases[0];
-```
-
-This dashboard visualizes global mean sea level rise from 1880 to ${latestYear} using three authoritative datasets:
-
-- **EPA** (1880-2013): Combined Environmental Protection Agency and CSIRO data
-- **CSIRO Reconstructed** (1880-2019): Historical tide gauge records
-- **Satellite Altimetry** (1993-2020): High-precision satellite measurements
-
-All measurements show change relative to the 1900 baseline.
+Satellite data are based solely on measured sea level, while the long-term tide gauge data include a small correction factor because the size and shape of the oceans are changing slowly over time. *(On average, the ocean floor has been gradually sinking since the last Ice Age peak, 20,000 years ago.)*
 
 ---
 
@@ -953,12 +932,15 @@ function spiralTimeline({width} = {}) {
 
 ## Key Findings
 
-- Sea levels have risen approximately **${totalRise} inches** since 1880
-- The rate of rise has **accelerated** from ~0.6 in/decade (1900-1990) to ~1.2 in/decade (1993-${latestYear})
-- **Highest annual increase**: **${topYear.year}** with **+${topYear.increase.toFixed(3)} inches** in a single year
-- **Years with largest increases**: ${topYears} (top 5 years since 1900)
-- Multiple independent datasets show **consistent trends**
-- Satellite measurements (1993+) show the highest precision and confirm acceleration
+We estimate the rise in global average sea level from satellite altimeter data for **1993–2009** and from coastal and island sea-level measurements from **1880 to 2009**.
+
+For 1993–2009 and after correcting for glacial isostatic adjustment, the estimated rate of rise is **3.2 ± 0.4 mm year⁻¹** from the satellite data and **2.8 ± 0.8 mm year⁻¹** from the in situ data.
+
+The global average sea-level rise from 1880 to 2009 is about **210 mm**. The linear trend from 1900 to 2009 is **1.7 ± 0.2 mm year⁻¹** and since 1961 is **1.9 ± 0.4 mm year⁻¹**.
+
+There is considerable variability in the rate of rise during the twentieth century but there has been a **statistically significant acceleration** since 1880 and 1900 of **0.009 ± 0.003 mm year⁻²** and **0.009 ± 0.004 mm year⁻²**, respectively.
+
+Since the start of the altimeter record in 1993, global average sea level rose at a rate near the **upper end of the sea level projections** of the Intergovernmental Panel on Climate Change's Third and Fourth Assessment Reports. However, the reconstruction indicates there was **little net change in sea level from 1990 to 1993**, most likely as a result of the volcanic eruption of **Mount Pinatubo in 1991**.
 
 ## References
 
