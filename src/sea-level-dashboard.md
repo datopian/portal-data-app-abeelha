@@ -121,7 +121,7 @@ const epaData = (await epaRaw).map(d => ({
   value: +d["CSIRO Adjusted Sea Level"],
   lower: +d["Lower Error Bound"],
   upper: +d["Upper Error Bound"],
-  source: "EPA/CSIRO"
+  source: "EPA"
 })).filter(d => d.year >= 1880 && d.year <= 2023 && !isNaN(d.value) && d.value !== 0);
 
 const csiroData = (await csiroRaw).map(d => ({
@@ -194,37 +194,67 @@ const selectedYear = view(Inputs.range([1880, latestYear], {
 ```
 
 ```js
-const selectedDataset = view(Inputs.select(
-  ["All", "EPA/CSIRO", "CSIRO", "Satellite"],
-  {label: "Dataset", value: "All"}
-));
-```
-
-```js
-// Filter data
-const filteredData = allData.filter(d => {
-  if (selectedDataset === "All") return d.year <= selectedYear;
-  if (selectedDataset === "EPA/CSIRO") return d.source === "EPA/CSIRO" && d.year <= selectedYear;
-  if (selectedDataset === "CSIRO") return d.source === "CSIRO" && d.year <= selectedYear;
-  if (selectedDataset === "Satellite") return d.source === "Satellite" && d.year <= selectedYear;
-  return false;
-});
-```
-
-```js
 // Current stats
 const currentEPA = epaData.find(d => d.year === selectedYear);
 const currentCSIRO = csiroData.find(d => d.year === selectedYear);
 const currentSat = satData.find(d => d.year === selectedYear);
 ```
 
+---
+## About This Data
+
+```js
+// Calculate total rise correctly
+const latestCSIRO = csiroData[csiroData.length - 1];
+const totalRise = latestCSIRO ? latestCSIRO.value.toFixed(1) : "N/A";
+
+// Calculate years with highest increases
+const yearlyIncreases = csiroData.slice(1).map((d, i) => ({
+  year: d.year,
+  increase: d.value - csiroData[i].value,
+  value: d.value
+})).filter(d => d.year >= 1900);
+
+// Sort by increase and get top 5
+const topIncreases = yearlyIncreases
+  .sort((a, b) => b.increase - a.increase)
+  .slice(0, 5);
+
+const topYears = topIncreases.map(d => d.year).join(", ");
+const topYear = topIncreases[0];
+```
+
+This dashboard visualizes global mean sea level rise from 1880 to ${latestYear} using three authoritative datasets:
+
+- **EPA** (1880-2013): Combined Environmental Protection Agency and CSIRO data
+- **CSIRO Reconstructed** (1880-2019): Historical tide gauge records
+- **Satellite Altimetry** (1993-2020): High-precision satellite measurements
+
+All measurements show change relative to the 1900 baseline.
+
+---
+
+## Data Sources
+
+- **EPA**
+  - Name: EPA (United States Environmental Protection Agency)
+  - Web: http://www3.epa.gov/climatechange/images/indicator_downloads/sea-level_fig-1.csv
+
+- **CSIRO**
+  - Name: CSIRO (Commonwealth Scientific and Industrial Research Organization)
+  - Web: http://www.cmar.csiro.au/sealevel/GMSL_SG_2011_up.html
+
+- **Satellite**
+  - Name: Satellite Altimetry Data
+  - Web: CSIRO satellite altimetry measurements
+---
 ## Sea Level Rise for Selected Year
 
 The values below show how much sea levels have increased (in inches) relative to the 1900 baseline, according to each dataset.
 
 <div class="grid grid-cols-3">
   <div class="card">
-    <h3>EPA/CSIRO</h3>
+    <h3>EPA</h3>
     <span class="big">${currentEPA ? currentEPA.value.toFixed(2) : "N/A"}</span>
     <p>inches</p>
   </div>
@@ -304,6 +334,24 @@ const vsHistorical = currentValue - historicalAvg;
 ## Sea Level Change Over Time
 
 ```js
+const selectedDataset = view(Inputs.select(
+  ["All", "EPA", "CSIRO", "Satellite"],
+  {label: "Source", value: "All"}
+));
+```
+
+```js
+// Filter data
+const filteredData = allData.filter(d => {
+  if (selectedDataset === "All") return d.year <= selectedYear;
+  if (selectedDataset === "EPA") return d.source === "EPA" && d.year <= selectedYear;
+  if (selectedDataset === "CSIRO") return d.source === "CSIRO" && d.year <= selectedYear;
+  if (selectedDataset === "Satellite") return d.source === "Satellite" && d.year <= selectedYear;
+  return false;
+});
+```
+
+```js
 function seaLevelChart(data, {width} = {}) {
   return Plot.plot({
     title: "Global Mean Sea Level Rise",
@@ -314,13 +362,13 @@ function seaLevelChart(data, {width} = {}) {
     y: {label: "Sea Level Change (inches)", grid: true},
     color: {
       legend: true,
-      domain: ["EPA/CSIRO", "CSIRO", "Satellite"],
+      domain: ["EPA", "CSIRO", "Satellite"],
       range: ["#4f46e5", "#059669", "#dc2626"]
     },
     marks: [
       // Uncertainty band for EPA
       Plot.areaY(
-        data.filter(d => d.source === "EPA/CSIRO" && d.lower !== undefined),
+        data.filter(d => d.source === "EPA" && d.lower !== undefined),
         {x: "year", y1: "lower", y2: "upper", fill: "#e0e7ff", fillOpacity: 0.3}
       ),
       // Lines for each dataset
@@ -360,7 +408,7 @@ function horizonChart({width} = {}) {
   const bands = 4;
   const bandHeight = 50;
   const height = bandHeight * bands;
-  const datasets = ["EPA/CSIRO", "CSIRO", "Satellite"];
+  const datasets = ["EPA", "CSIRO", "Satellite"];
 
   // Group data by source
   const epaOnly = epaData.filter(d => d.value > 0);
@@ -368,7 +416,7 @@ function horizonChart({width} = {}) {
   const satOnly = satData.filter(d => d.value > 0);
 
   const dataBySource = {
-    "EPA/CSIRO": epaOnly,
+    "EPA": epaOnly,
     "CSIRO": csiroOnly,
     "Satellite": satOnly
   };
@@ -444,7 +492,7 @@ function horizonChart({width} = {}) {
         fy: "fy",
         dx: -10,
         textAnchor: "end",
-        fill: d => d === "EPA/CSIRO" ? "#4f46e5" : d === "CSIRO" ? "#059669" : "#dc2626",
+        fill: d => d === "EPA" ? "#4f46e5" : d === "CSIRO" ? "#059669" : "#dc2626",
         fontSize: 12,
         fontWeight: "bold"
       }),
@@ -903,37 +951,6 @@ function spiralTimeline({width} = {}) {
 
 ---
 
-## About This Data
-
-```js
-// Calculate total rise correctly
-const latestCSIRO = csiroData[csiroData.length - 1];
-const totalRise = latestCSIRO ? latestCSIRO.value.toFixed(1) : "N/A";
-
-// Calculate years with highest increases
-const yearlyIncreases = csiroData.slice(1).map((d, i) => ({
-  year: d.year,
-  increase: d.value - csiroData[i].value,
-  value: d.value
-})).filter(d => d.year >= 1900);
-
-// Sort by increase and get top 5
-const topIncreases = yearlyIncreases
-  .sort((a, b) => b.increase - a.increase)
-  .slice(0, 5);
-
-const topYears = topIncreases.map(d => d.year).join(", ");
-const topYear = topIncreases[0];
-```
-
-This dashboard visualizes global mean sea level rise from 1880 to ${latestYear} using three authoritative datasets:
-
-- **EPA/CSIRO** (1880-2013): Combined Environmental Protection Agency and CSIRO data
-- **CSIRO Reconstructed** (1880-2019): Historical tide gauge records
-- **Satellite Altimetry** (1993-2020): High-precision satellite measurements
-
-All measurements show change relative to the 1900 baseline.
-
 ## Key Findings
 
 - Sea levels have risen approximately **${totalRise} inches** since 1880
@@ -942,6 +959,12 @@ All measurements show change relative to the 1900 baseline.
 - **Years with largest increases**: ${topYears} (top 5 years since 1900)
 - Multiple independent datasets show **consistent trends**
 - Satellite measurements (1993+) show the highest precision and confirm acceleration
+
+## References
+
+- https://datahub.io/core/sea-level-rise
+- https://github.com/datasets/sea-level-rise
+- https://www.epa.gov/climate-indicators/climate-change-indicators-sea-level
 
 ---
 
