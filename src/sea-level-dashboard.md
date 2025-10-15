@@ -115,24 +115,23 @@ const satRaw = FileAttachment("data/CSIRO_Alt_yearly.csv").csv({typed: true});
 ```
 
 ```js
-// Normalize data
 const epaData = (await epaRaw).map(d => ({
   year: +d.Year,
-  value: +d["CSIRO Adjusted Sea Level"],
-  lower: +d["Lower Error Bound"],
-  upper: +d["Upper Error Bound"],
+  value: +d["CSIRO Adjusted Sea Level"] * 25.4, // Convert inches to mm
+  lower: +d["Lower Error Bound"] * 25.4,
+  upper: +d["Upper Error Bound"] * 25.4,
   source: "EPA"
 })).filter(d => d.year >= 1880 && d.year <= 2023 && !isNaN(d.value) && d.value !== 0);
 
 const csiroData = (await csiroRaw).map(d => ({
   year: +d.Time,
-  value: +d.GMSL / 25.4,
+  value: +d.GMSL,
   source: "CSIRO"
 })).filter(d => d.year >= 1880);
 
 const satData = (await satRaw).map(d => ({
   year: +d.Time,
-  value: +d["GMSL (yearly)"] / 25.4,
+  value: +d["GMSL (yearly)"],
   source: "Satellite"
 })).filter(d => d.year >= 1993);
 
@@ -229,23 +228,23 @@ Satellite data are based solely on measured sea level, while the long-term tide 
 ---
 ## Sea Level Rise for Selected Year
 
-The values below show the sea level measurements (in inches) from each dataset for the selected year. **EPA** data is already in inches from the CSV. **CSIRO** data is converted from millimeters to inches (÷ 25.4). **Satellite** data is also converted from millimeters to inches (÷ 25.4).
+The values below show the sea level measurements (in millimeters) from each dataset for the selected year. **EPA** data is converted from inches to millimeters (× 25.4). **CSIRO** and **Satellite** data are already in millimeters from the CSV files.
 
 <div class="grid grid-cols-3">
   <div class="card">
     <h3>EPA</h3>
-    <span class="big">${currentEPA ? currentEPA.value.toFixed(2) : "N/A"}</span>
-    <p>inches</p>
+    <span class="big">${currentEPA ? currentEPA.value.toFixed(1) : "N/A"}</span>
+    <p>mm</p>
   </div>
   <div class="card">
     <h3>CSIRO</h3>
-    <span class="big">${currentCSIRO ? currentCSIRO.value.toFixed(2) : "N/A"}</span>
-    <p>inches</p>
+    <span class="big">${currentCSIRO ? currentCSIRO.value.toFixed(1) : "N/A"}</span>
+    <p>mm</p>
   </div>
   <div class="card">
     <h3>Satellite</h3>
-    <span class="big">${currentSat ? currentSat.value.toFixed(2) : "N/A"}</span>
-    <p>inches</p>
+    <span class="big">${currentSat ? currentSat.value.toFixed(1) : "N/A"}</span>
+    <p>mm</p>
   </div>
 </div>
 
@@ -253,7 +252,7 @@ The values below show the sea level measurements (in inches) from each dataset f
 
 ## Sea Level Change Over Time
 
-This line chart displays sea level measurements from all three datasets over time. **EPA** data (1880-2013) is shown in purple with uncertainty bands. **CSIRO** data (1880-2019) is shown in green. **Satellite** data (1993-2020) is shown in red. CSIRO and Satellite data are converted from millimeters to inches for consistency with EPA data.
+This line chart displays sea level measurements from all three datasets over time. **EPA** data (1880-2013) is shown in purple with uncertainty bands. **CSIRO** data (1880-2019) is shown in green. **Satellite** data (1993-2020) is shown in red. All data is displayed in millimeters (EPA converted from inches).
 
 ```js
 const selectedDataset = view(Inputs.select(
@@ -281,7 +280,7 @@ function seaLevelChart(data, {width} = {}) {
     height: 400,
     marginLeft: 60,
     x: {label: "Year", grid: true, domain: [1880, latestYear]},
-    y: {label: "Sea Level Change (inches)", grid: true},
+    y: {label: "Sea Level Change (mm)", grid: true},
     color: {
       legend: true,
       domain: ["EPA", "CSIRO", "Satellite"],
@@ -309,7 +308,7 @@ function seaLevelChart(data, {width} = {}) {
         y: "value",
         stroke: "source",
         r: 4,
-        title: d => `${d.source} (${d.year}): ${d.value.toFixed(2)} inches`
+        title: d => `${d.source} (${d.year}): ${d.value.toFixed(1)} mm`
       })),
       Plot.ruleY([0])
     ]
@@ -325,7 +324,7 @@ function seaLevelChart(data, {width} = {}) {
 
 ## 🌊 Horizon View - Compact Multi-Dataset Comparison
 
-This horizon chart shows all three datasets in a compact, layered format. Each row represents one dataset (EPA, CSIRO, Satellite), with blue bands indicating the magnitude of sea level rise. Darker/higher bands represent higher sea level values. All data is displayed in inches (CSIRO and Satellite converted from millimeters).
+This horizon chart shows all three datasets in a compact, layered format. Each row represents one dataset (EPA, CSIRO, Satellite), with blue bands indicating the magnitude of sea level rise. Darker/higher bands represent higher sea level values. All data is displayed in millimeters (EPA converted from inches).
 
 ```js
 function horizonChart({width} = {}) {
@@ -429,7 +428,7 @@ function horizonChart({width} = {}) {
           fy: "source",
           x: "year",
           y: () => bandHeight / 2,
-          title: d => `${d.source}\n${d.year}: ${d.value.toFixed(2)} inches`,
+          title: d => `${d.source}\n${d.year}: ${d.value.toFixed(1)} mm`,
           fill: "white",
           stroke: "#64748b"
         })
@@ -447,7 +446,7 @@ function horizonChart({width} = {}) {
 
 ## 🔄 Connected Scatterplot - Sea Level vs Rate of Change
 
-This visualization shows the annual rate of change in sea level using data from the **CSIRO Reconstructed GMSL** dataset. The raw CSIRO data is in millimeters and is converted to inches (1 inch = 25.4 mm). The rate of change is calculated by subtracting each year's sea level value from the previous year's value, showing the year-over-year difference from the CSV data.
+This visualization shows the annual rate of change in sea level using data from the **CSIRO Reconstructed GMSL** dataset. The rate of change is calculated by subtracting each year's sea level value from the previous year's value, showing the year-over-year difference from the data.
 
 ```js
 // Prepare scatterplot data with rate of change
@@ -484,7 +483,7 @@ function connectedScatterplot({width} = {}) {
       nice: true
     },
     y: {
-      label: "Annual Rate of Change (inches/year)",
+      label: "Annual Rate of Change (mm/year)",
       nice: true
     },
     marks: [
@@ -505,7 +504,7 @@ function connectedScatterplot({width} = {}) {
         stroke: "white",
         strokeWidth: 1,
         tip: true,
-        title: d => `${d.year}\nSea Level: ${d.value.toFixed(2)} in\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(3)} in/year`
+        title: d => `${d.year}\nSea Level: ${d.value.toFixed(1)} mm\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(1)} mm/year`
       }),
       // Highlight selected year
       Plot.dot(
@@ -535,7 +534,7 @@ function connectedScatterplot({width} = {}) {
 
 ## 📅 Calendar Heatmap - Annual Rate of Change Patterns
 
-This heatmap shows the annual rate of change using **CSIRO Reconstructed GMSL** data. Each cell represents one year, organized by decades. The color indicates the rate of change (blue = decrease, red = increase) calculated by subtracting consecutive year values from the CSV data. Data is in inches (converted from millimeters).
+This heatmap shows the annual rate of change using **CSIRO Reconstructed GMSL** data. Each cell represents one year, organized by decades. The color indicates the rate of change (blue = decrease, red = increase) calculated by subtracting consecutive year values. Data is in millimeters.
 
 ```js
 // Prepare calendar data with rate of change
@@ -585,7 +584,7 @@ function calendarHeatmap({width} = {}) {
       reverse: true,
       domain: d3.extent(calendarData, d => d.rate),
       legend: true,
-      label: "Annual Change (inches)"
+      label: "Annual Change (mm)"
     },
     marks: [
       // Heatmap cells
@@ -596,7 +595,7 @@ function calendarHeatmap({width} = {}) {
         inset: 2,
         rx: 4,
         tip: true,
-        title: d => `${d.year}\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(3)} in/year\nTotal: ${d.absValue.toFixed(2)} inches`
+        title: d => `${d.year}\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(1)} mm/year\nTotal: ${d.absValue.toFixed(1)} mm`
       }),
       // Current year highlight cell (non-scroll-causing)
       Plot.cell(calendarData.filter(d => d.year === selectedYear), {
@@ -632,7 +631,7 @@ function calendarHeatmap({width} = {}) {
 
 ## Decade Comparison
 
-This bar chart shows the average sea level for each decade. Data uses **EPA** for decades 1880-2009 and **CSIRO** for 2010-2019. The average is calculated by summing all year values within each decade and dividing by 10. All values are in inches.
+This bar chart shows the average sea level for each decade. Data uses **EPA** for decades 1880-2009 and **CSIRO** for 2010-2019. The average is calculated by summing all year values within each decade and dividing by 10. All values are in millimeters.
 
 ```js
 const decadeData = [
@@ -662,12 +661,12 @@ function decadeChart(data, {width} = {}) {
     marginLeft: 60,
     marginBottom: 80,
     x: {label: null, tickRotate: -45},
-    y: {label: "Average Sea Level (inches)", grid: true},
+    y: {label: "Average Sea Level (mm)", grid: true},
     marks: [
       Plot.barY(data, {
         x: "decade",
         y: "value",
-        fill: d => d.value < 1 ? "#059669" : d.value < 3 ? "#f59e0b" : "#dc2626",
+        fill: d => d.value < 25 ? "#059669" : d.value < 75 ? "#f59e0b" : "#dc2626",
         tip: true
       }),
       Plot.ruleY([0])
@@ -684,7 +683,7 @@ function decadeChart(data, {width} = {}) {
 
 ## 🌀 Spiral Timeline - 140 Years in Circular View
 
-This spiral visualization displays 140 years of sea level data from **CSIRO Reconstructed GMSL** in a circular format. Each point represents one year, spiraling outward from 1880 to 2019. Colors indicate sea level magnitude (blue = lower, red = higher). Data is converted from millimeters to inches.
+This spiral visualization displays 140 years of sea level data from **CSIRO Reconstructed GMSL** in a circular format. Each point represents one year, spiraling outward from 1880 to 2019. Colors indicate sea level magnitude (blue = lower, red = higher). Data is in millimeters.
 
 ```js
 function spiralTimeline({width} = {}) {
@@ -816,7 +815,7 @@ function spiralTimeline({width} = {}) {
     .attr("y", legendY - 5)
     .attr("font-size", "10px")
     .attr("fill", "#94a3b8")
-    .text(`${d3.min(spiralData, d => d.value).toFixed(1)}"`);
+    .text(`${d3.min(spiralData, d => d.value).toFixed(1)} mm`);
 
   svg.append("text")
     .attr("x", legendX + legendWidth)
@@ -824,7 +823,7 @@ function spiralTimeline({width} = {}) {
     .attr("text-anchor", "end")
     .attr("font-size", "10px")
     .attr("fill", "#94a3b8")
-    .text(`${d3.max(spiralData, d => d.value).toFixed(1)}"`);
+    .text(`${d3.max(spiralData, d => d.value).toFixed(1)} mm`);
 
   // Add interactivity
   segments.on("mouseenter", function(event, d) {
@@ -862,7 +861,7 @@ function spiralTimeline({width} = {}) {
       .attr("text-anchor", "middle")
       .attr("font-size", "14px")
       .attr("fill", "#3b82f6")
-      .text(`+${d.value.toFixed(2)} inches`);
+      .text(`${d.value.toFixed(1)} mm`);
   })
   .on("mouseleave", function() {
     d3.select(this)
