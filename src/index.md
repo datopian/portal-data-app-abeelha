@@ -2,11 +2,6 @@
 toc: false
 ---
 
-```js
-import { inject } from "npm:@vercel/analytics";
-inject();
-```
-
 <div class="hero">
   <h1>🌀 PortalJS <span style="color: var(--theme-foreground)">Data App</span></h1>
   <h2>Welcome to your new data app! Edit&nbsp;<code style="font-size: 90%;">src/index.md</code> to change this page.</h2>
