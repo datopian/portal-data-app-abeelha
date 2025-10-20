@@ -18,7 +18,7 @@ export default {
 
   // Content to add to the head of the page, e.g. for a favicon:
   head: `<link rel="icon" href="observable.png" type="image/png" sizes="32x32">
-<script src="/_vercel-analytics.js"></script>`,
+<script defer src="/_vercel/insights/script.js"></script>`,
 
   // The path to the source root.
   root: "src",
