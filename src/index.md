@@ -3,7 +3,7 @@ toc: false
 ---
 
 ```js
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "npm:@vercel/analytics/react";
 ```
 
 <div class="hero">
