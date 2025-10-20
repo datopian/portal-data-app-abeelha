@@ -17,15 +17,7 @@ export default {
   // ],
 
   // Content to add to the head of the page, e.g. for a favicon:
-  head: `<link rel="icon" href="observable.png" type="image/png" sizes="32x32">
-<script>
-(function() {
-  var script = document.createElement('script');
-  script.defer = true;
-  script.src = '/_vercel/insights/script.js';
-  document.head.appendChild(script);
-})();
-</script>`,
+  head: '<link rel="icon" href="observable.png" type="image/png" sizes="32x32">',
 
   // The path to the source root.
   root: "src",
