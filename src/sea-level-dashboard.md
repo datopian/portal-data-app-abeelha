@@ -102,16 +102,19 @@ svg rect, svg path, svg circle, svg text {
 }
 
 h2, h3 {
-  text-align: center;
-  max-width: none !important;
-  width: 100% !important;
-}
-
-main > p {
-  text-align: center;
-  max-width: 800px;
+  max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+}
+
+main > p, main > ul, main > ol {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.card, .grid {
+  max-width: 100% !important;
 }
 </style>
 
