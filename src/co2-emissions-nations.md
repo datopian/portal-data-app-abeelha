@@ -137,9 +137,21 @@ toc: false
   color: white !important;
 }
 
-/* Simple text colors */
 svg text {
   fill: black !important;
+}
+
+h2, h3 {
+  text-align: center;
+  max-width: none !important;
+  width: 100% !important;
+}
+
+main > p {
+  text-align: center;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>
 
@@ -270,7 +282,8 @@ function emissionsBreakdown({width} = {}) {
     color: {
       legend: true,
       domain: ["Solid Fuel", "Liquid Fuel", "Gas Fuel", "Cement", "Gas Flaring"],
-      range: ["#64748b", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
+      range: ["#64748b", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"],
+      label: null
     },
     marks: [
       Plot.barX(breakdownData, {
@@ -446,7 +459,8 @@ function historicalTrends({width} = {}) {
     color: {
       legend: true,
       domain: top5Countries,
-      range: ["#ef4444", "#f59e0b", "#22c55e", "#3b82f6", "#8b5cf6"]
+      range: ["#ef4444", "#f59e0b", "#22c55e", "#3b82f6", "#8b5cf6"],
+      label: null
     },
     marks: [
       // Area fills under each line

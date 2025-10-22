@@ -138,12 +138,10 @@ toc: false
   color: white !important;
 }
 
-/* Simple text colors */
 svg text {
   fill: black !important;
 }
 
-/* Fix tooltip text to be readable */
 [id^="plot-tip-"],
 [role="tooltip"],
 [aria-live="polite"] {
@@ -154,6 +152,19 @@ svg text {
 [role="tooltip"] *,
 [aria-live="polite"] * {
   color: black !important;
+}
+
+h2, h3 {
+  text-align: center;
+  max-width: none !important;
+  width: 100% !important;
+}
+
+main > p {
+  text-align: center;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>
 

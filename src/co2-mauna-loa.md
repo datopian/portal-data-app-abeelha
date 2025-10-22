@@ -47,6 +47,19 @@ svg text {
 [aria-live="polite"] * {
   color: black !important;
 }
+
+h2, h3 {
+  text-align: center;
+  max-width: none !important;
+  width: 100% !important;
+}
+
+main > p {
+  text-align: center;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
 </style>
 
 <div class="hero">
