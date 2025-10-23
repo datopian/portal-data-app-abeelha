@@ -82,11 +82,6 @@ const co2Data = (await co2Raw).map(d => ({
 
 const latestReading = co2Data[co2Data.length - 1];
 const firstReading = co2Data[0];
-
-const totalIncrease = latestReading.average - firstReading.average;
-const percentIncrease = ((totalIncrease / firstReading.average) * 100).toFixed(1);
-const yearsElapsed = latestReading.date.getFullYear() - firstReading.date.getFullYear();
-const avgIncreasePerYear = (totalIncrease / yearsElapsed).toFixed(2);
 ```
 
 ---
@@ -94,29 +89,6 @@ const avgIncreasePerYear = (totalIncrease / yearsElapsed).toFixed(2);
 ## 📊 Atmospheric CO₂ Concentration Over Time
 
 The famous Keeling Curve showing the relentless rise of atmospheric CO₂ from 1958 to present, measured at Mauna Loa Observatory. The zigzag pattern shows seasonal variations caused by Northern Hemisphere vegetation cycles.
-
-<div class="grid grid-cols-4" style="gap: 1rem; margin: 2rem 0;">
-  <div class="card" style="text-align: center; padding: 1.5rem;">
-    <h3 style="margin: 0; font-size: 0.9rem; color: #64748b;">1958 Baseline</h3>
-    <p style="font-size: 2rem; font-weight: 900; margin: 0.5rem 0; color: #10b981;">${firstReading.average.toFixed(2)}</p>
-    <p style="margin: 0; font-size: 0.85rem; color: #64748b;">PPM</p>
-  </div>
-  <div class="card" style="text-align: center; padding: 1.5rem;">
-    <h3 style="margin: 0; font-size: 0.9rem; color: #64748b;">Current Level</h3>
-    <p style="font-size: 2rem; font-weight: 900; margin: 0.5rem 0; color: #dc2626;">${latestReading.average.toFixed(2)}</p>
-    <p style="margin: 0; font-size: 0.85rem; color: #64748b;">PPM (${latestReading.date.getFullYear()})</p>
-  </div>
-  <div class="card" style="text-align: center; padding: 1.5rem;">
-    <h3 style="margin: 0; font-size: 0.9rem; color: #64748b;">Total Increase</h3>
-    <p style="font-size: 2rem; font-weight: 900; margin: 0.5rem 0; color: #ef4444;">+${totalIncrease.toFixed(2)}</p>
-    <p style="margin: 0; font-size: 0.85rem; color: #64748b;">(+${percentIncrease}%)</p>
-  </div>
-  <div class="card" style="text-align: center; padding: 1.5rem;">
-    <h3 style="margin: 0; font-size: 0.9rem; color: #64748b;">Annual Rate</h3>
-    <p style="font-size: 2rem; font-weight: 900; margin: 0.5rem 0; color: #f59e0b;">+${avgIncreasePerYear}</p>
-    <p style="margin: 0; font-size: 0.85rem; color: #64748b;">PPM/year</p>
-  </div>
-</div>
 
 ```js
 function co2Timeline({width} = {}) {
