@@ -179,17 +179,6 @@ function Scrubber(values, {
 ```
 
 ```js
-const years = d3.range(1833, 2025);
-const selectedYear = view(Scrubber(years, {
-  delay: 150,
-  loop: false,
-  initial: years.length - 1,
-  autoplay: false,
-  format: d => d
-}));
-```
-
-```js
 const selectedData = goldData.filter(d => d.year <= selectedYear);
 const currentPrice = selectedData[selectedData.length - 1];
 ```
@@ -198,7 +187,7 @@ const currentPrice = selectedData[selectedData.length - 1];
 
 ## 📈 The Great Transformation: 191 Years of Gold
 
-This visualization tells the incredible story of gold - from over a century of stability to explosive modern growth. Select a year above to explore the price at any point in history!
+This visualization tells the incredible story of gold - from over a century of stability to explosive modern growth. Use the timeline controls below the graph to explore the price at any point in history!
 
 ```js
 function goldTimeline({width} = {}) {
@@ -320,6 +309,17 @@ function goldTimeline({width} = {}) {
 <div class="card">
   ${resize((width) => goldTimeline({width}))}
 </div>
+
+```js
+const years = d3.range(1833, 2025);
+const selectedYear = view(Scrubber(years, {
+  delay: 150,
+  loop: false,
+  initial: years.length - 1,
+  autoplay: false,
+  format: d => d
+}));
+```
 
 <svg width="0" height="0">
   <defs>

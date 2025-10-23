@@ -175,32 +175,21 @@ function Scrubber(values, {
 }
 ```
 
-```js
-const years = d3.range(1751, latestYear + 1);
-const selectedYear = view(Scrubber(years, {
-  delay: 150,
-  loop: false,
-  initial: years.length - 1,
-  autoplay: false,
-  format: d => d
-}));
-```
-
-```js
-const yearData = emissionsData
-  .filter(d => d.year === selectedYear && d.total > 0)
-  .sort((a, b) => b.total - a.total)
-  .slice(0, 20);
-```
-
 ---
 
 ## 📊 Emissions Breakdown by Source
 
-Explore how different fuel types contribute to each country's total emissions for the selected year: **${selectedYear}**.
+Explore how different fuel types contribute to each country's total emissions for the selected year: **${selectedYearBreakdown}**.
 
 ```js
-const topCountriesForBreakdown = yearData.slice(0, 12);
+const yearDataBreakdown = emissionsData
+  .filter(d => d.year === selectedYearBreakdown && d.total > 0)
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 20);
+```
+
+```js
+const topCountriesForBreakdown = yearDataBreakdown.slice(0, 12);
 
 function emissionsBreakdown({width} = {}) {
   const breakdownData = topCountriesForBreakdown.flatMap(d => [
@@ -249,18 +238,36 @@ function emissionsBreakdown({width} = {}) {
   ${resize((width) => emissionsBreakdown({width}))}
 </div>
 
+```js
+const yearsBreakdown = d3.range(1751, latestYear + 1);
+const selectedYearBreakdown = view(Scrubber(yearsBreakdown, {
+  delay: 150,
+  loop: false,
+  initial: yearsBreakdown.length - 1,
+  autoplay: false,
+  format: d => d
+}));
+```
+
 ---
 
 ## 🌐 Global Emissions Treemap
 
-A treemap showing the relative size of emissions by country for year **${selectedYear}**. Larger blocks represent higher emissions. Hover to see detailed information.
+A treemap showing the relative size of emissions by country for year **${selectedYearTreemap}**. Larger blocks represent higher emissions. Hover to see detailed information.
+
+```js
+const yearDataTreemap = emissionsData
+  .filter(d => d.year === selectedYearTreemap && d.total > 0)
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 20);
+```
 
 ```js
 function emissionsTreemap({width} = {}) {
   const height = 650;
 
   // Prepare hierarchical data - show top 30 countries
-  const topCountriesTreemap = yearData.slice(0, 30);
+  const topCountriesTreemap = yearDataTreemap.slice(0, 30);
   const hierarchyData = {
     name: "Global",
     children: topCountriesTreemap.map(d => ({
@@ -365,6 +372,17 @@ function emissionsTreemap({width} = {}) {
 <div class="card">
   ${resize((width) => emissionsTreemap({width}))}
 </div>
+
+```js
+const yearsTreemap = d3.range(1751, latestYear + 1);
+const selectedYearTreemap = view(Scrubber(yearsTreemap, {
+  delay: 150,
+  loop: false,
+  initial: yearsTreemap.length - 1,
+  autoplay: false,
+  format: d => d
+}));
+```
 
 ---
 
