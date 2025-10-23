@@ -40,63 +40,6 @@ svg rect, svg path, svg circle, svg text {
   contain: layout style paint;
 }
 
-.year-control-overlay {
-  position: fixed;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--theme-background-alt);
-  padding: 1rem 1rem;
-  border-radius: 12px;
-  border: 2px solid var(--theme-foreground-faint);
-  z-index: 1000;
-  width: 160px;
-}
-
-.year-control-overlay h3 {
-  color: var(--theme-foreground-alt);
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-.year-control-overlay .year-display-overlay {
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--theme-foreground);
-  text-align: center;
-  margin: 0.75rem 0 0.25rem 0;
-  letter-spacing: 1px;
-}
-
-.year-control-overlay input[type="range"] {
-  width: 100%;
-  margin: 0.5rem 0;
-  cursor: pointer;
-  accent-color: var(--theme-foreground-focus);
-}
-
-.year-control-overlay label,
-.year-control-overlay span,
-.year-control-overlay div {
-  color: var(--theme-foreground);
-}
-
-.year-control-overlay form {
-  width: 100%;
-}
-
-.year-control-overlay input[type="number"] {
-  background: var(--theme-background);
-  border: 1px solid var(--theme-foreground-faint);
-  color: var(--theme-foreground);
-  padding: 0.2rem;
-  border-radius: 4px;
-  text-align: center;
-  font-size: 0.85rem;
-  width: 100%;
-}
-
 h2, h3 {
   max-width: 600px;
   margin-left: auto;
@@ -155,53 +98,89 @@ const allData = [...epaData, ...csiroData, ...satData];
 const latestYear = Math.max(...csiroData.map(d => d.year));
 ```
 
-<div class="year-control-overlay">
-  <h3>📅 Year Control</h3>
-
 ```js
-const selectedYear = view(Inputs.range([1880, latestYear], {
-  step: 1,
-  value: latestYear
-}));
+function Scrubber(values, {
+  format = value => value,
+  initial = 0,
+  direction = 1,
+  delay = null,
+  autoplay = true,
+  loop = true,
+  loopDelay = null,
+  alternate = false
+} = {}) {
+  values = Array.from(values);
+  const form = html`<form style="font: 12px var(--sans-serif); font-variant-numeric: tabular-nums; display: flex; height: 33px; align-items: center;">
+    <button name=b type=button style="margin-right: 0.4em; width: 5em;"></button>
+    <label style="display: flex; align-items: center;">
+      <input name=i type=range min=0 max=${values.length - 1} value=${initial} step=1 style="width: 180px;">
+      <output name=o style="margin-left: 0.4em;"></output>
+    </label>
+  </form>`;
+  let frame = null;
+  let timer = null;
+  let interval = null;
+  function start() {
+    form.b.textContent = "Pause";
+    if (delay === null) frame = requestAnimationFrame(tick);
+    else interval = setInterval(tick, delay);
+  }
+  function stop() {
+    form.b.textContent = "Play";
+    if (frame !== null) cancelAnimationFrame(frame), frame = null;
+    if (timer !== null) clearTimeout(timer), timer = null;
+    if (interval !== null) clearInterval(interval), interval = null;
+  }
+  function running() {
+    return frame !== null || timer !== null || interval !== null;
+  }
+  function tick() {
+    if (form.i.valueAsNumber === (direction > 0 ? values.length - 1 : direction < 0 ? 0 : NaN)) {
+      if (!loop) return stop();
+      if (alternate) direction = -direction;
+      if (loopDelay !== null) {
+        if (frame !== null) cancelAnimationFrame(frame), frame = null;
+        if (interval !== null) clearInterval(interval), interval = null;
+        timer = setTimeout(() => (step(), start()), loopDelay);
+        return;
+      }
+    }
+    if (delay === null) frame = requestAnimationFrame(tick);
+    step();
+  }
+  function step() {
+    form.i.valueAsNumber = (form.i.valueAsNumber + direction + values.length) % values.length;
+    form.i.dispatchEvent(new CustomEvent("input", {bubbles: true}));
+  }
+  form.i.oninput = event => {
+    if (event && event.isTrusted && running()) stop();
+    form.value = values[form.i.valueAsNumber];
+    form.o.value = format(form.value, form.i.valueAsNumber, values);
+  };
+  form.b.onclick = () => {
+    if (running()) return stop();
+    direction = alternate && form.i.valueAsNumber === values.length - 1 ? -1 : 1;
+    form.i.valueAsNumber = (form.i.valueAsNumber + direction) % values.length;
+    form.i.dispatchEvent(new CustomEvent("input", {bubbles: true}));
+    start();
+  };
+  form.i.oninput();
+  if (autoplay) start();
+  else stop();
+  Inputs.disposal(form).then(stop);
+  return form;
+}
 ```
 
-  <div class="year-display-overlay">${selectedYear}</div>
-</div>
-
 ```js
-// Aggressively preserve scroll position during year changes
-{
-  let preservedScrollY = window.scrollY || window.pageYOffset;
-  let isUserScrolling = false;
-  let scrollTimeout;
-
-  // Track user scrolling
-  window.addEventListener('scroll', () => {
-    if (!isUserScrolling) {
-      isUserScrolling = true;
-      preservedScrollY = window.scrollY || window.pageYOffset;
-    }
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      isUserScrolling = false;
-      preservedScrollY = window.scrollY || window.pageYOffset;
-    }, 100);
-  }, { passive: true });
-
-  // Restore scroll position on any unexpected scroll caused by re-renders
-  const observer = new MutationObserver(() => {
-    const currentScroll = window.scrollY || window.pageYOffset;
-    if (!isUserScrolling && Math.abs(currentScroll - preservedScrollY) > 5) {
-      window.scrollTo(0, preservedScrollY);
-    }
-  });
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: false
-  });
-}
+const years = d3.range(1880, latestYear + 1);
+const selectedYear = view(Scrubber(years, {
+  delay: 200,
+  loop: false,
+  initial: years.length - 1,
+  autoplay: false,
+  format: d => d
+}));
 ```
 
 ```js
