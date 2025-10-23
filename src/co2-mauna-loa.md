@@ -7,25 +7,24 @@ toc: false
 .hero {
   text-align: center;
   padding: 3rem 2rem;
-  background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 50%, #c026d3 100%);
-  color: white;
+  background: var(--theme-background-alt);
+  color: var(--theme-foreground);
   border-radius: 16px;
   margin-bottom: 2rem;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  border: 2px solid var(--theme-foreground-faint);
 }
 
 .hero h1 {
   margin: 0;
   font-size: 3rem;
   font-weight: 900;
-  color: white;
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+  color: var(--theme-foreground-alt);
 }
 
 .hero p {
   margin: 1rem 0 0;
   font-size: 1.2rem;
-  opacity: 0.95;
+  color: var(--theme-foreground-muted);
 }
 
 * {
@@ -33,19 +32,20 @@ toc: false
 }
 
 svg text {
-  fill: black !important;
+  fill: var(--theme-foreground) !important;
 }
 
 [id^="plot-tip-"],
 [role="tooltip"],
 [aria-live="polite"] {
-  color: black !important;
+  color: var(--theme-foreground) !important;
+  background: var(--theme-background) !important;
 }
 
 [id^="plot-tip-"] *,
 [role="tooltip"] *,
 [aria-live="polite"] * {
-  color: black !important;
+  color: var(--theme-foreground) !important;
 }
 
 h2, h3 {

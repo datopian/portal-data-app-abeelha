@@ -7,61 +7,24 @@ toc: false
 .hero {
   text-align: center;
   padding: 3rem 2rem;
-  background: linear-gradient(135deg, #dc2626 0%, #ea580c 50%, #f59e0b 100%);
-  color: white;
+  background: var(--theme-background-alt);
+  color: var(--theme-foreground);
   border-radius: 16px;
   margin-bottom: 2rem;
-  box-shadow: 0 10px 40px rgba(220, 38, 38, 0.4);
+  border: 2px solid var(--theme-foreground-faint);
 }
 
 .hero h1 {
   margin: 0;
   font-size: 3rem;
   font-weight: 900;
-  color: white;
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+  color: var(--theme-foreground-alt);
 }
 
 .hero p {
   margin: 1rem 0 0;
   font-size: 1.2rem;
-  opacity: 0.95;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  padding: 2rem;
-  border-radius: 12px;
-  color: white;
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  border: 2px solid #334155;
-}
-
-.stat-value {
-  font-size: 3rem;
-  font-weight: 900;
-  line-height: 1;
-  margin: 0;
-  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.stat-label {
-  font-size: 1rem;
-  opacity: 0.8;
-  margin-top: 0.5rem;
-}
-
-.country-highlight {
-  background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
-  padding: 1.5rem;
-  border-radius: 12px;
-  color: white;
-  margin: 2rem 0;
-  text-align: center;
+  color: var(--theme-foreground-muted);
 }
 
 * {
@@ -78,30 +41,27 @@ toc: false
   right: 20px;
   top: 50%;
   transform: translateY(-50%);
-  background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+  background: var(--theme-background-alt);
   padding: 1rem 1rem;
   border-radius: 12px;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--theme-foreground-faint);
   z-index: 1000;
   width: 160px;
-  backdrop-filter: blur(10px);
 }
 
 .year-control-overlay h3 {
-  color: white;
+  color: var(--theme-foreground-alt);
   margin: 0 0 0.5rem 0;
   font-size: 0.9rem;
   text-align: center;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .year-control-overlay .year-display-overlay {
   font-size: 2rem;
   font-weight: bold;
-  color: white;
+  color: var(--theme-foreground);
   text-align: center;
   margin: 0.75rem 0 0.25rem 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   letter-spacing: 1px;
 }
 
@@ -109,13 +69,13 @@ toc: false
   width: 100%;
   margin: 0.5rem 0;
   cursor: pointer;
-  accent-color: #fbbf24;
+  accent-color: var(--theme-foreground-focus);
 }
 
 .year-control-overlay input[type="number"] {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white !important;
+  background: var(--theme-background);
+  border: 1px solid var(--theme-foreground-faint);
+  color: var(--theme-foreground);
   padding: 0.3rem;
   border-radius: 4px;
   text-align: center;
@@ -126,7 +86,7 @@ toc: false
 .year-control-overlay label,
 .year-control-overlay span,
 .year-control-overlay div {
-  color: white !important;
+  color: var(--theme-foreground);
 }
 
 .year-control-overlay form {
@@ -134,11 +94,11 @@ toc: false
 }
 
 .year-control-overlay output {
-  color: white !important;
+  color: var(--theme-foreground);
 }
 
 svg text {
-  fill: black !important;
+  fill: var(--theme-foreground) !important;
 }
 
 h2, h3 {
