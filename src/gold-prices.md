@@ -69,6 +69,10 @@ main > p, main > ul, main > ol {
 .card, .grid {
   max-width: 100% !important;
 }
+
+.card {
+  min-height: 750px;
+}
 </style>
 
 <div class="hero">
@@ -177,7 +181,7 @@ function Scrubber(values, {
 ```js
 const years = d3.range(1833, 2025);
 const selectedYear = view(Scrubber(years, {
-  delay: 100,
+  delay: 150,
   loop: false,
   initial: years.length - 1,
   autoplay: false,
