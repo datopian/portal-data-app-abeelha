@@ -122,17 +122,6 @@ function Scrubber(values, {format = value => value, initial = 0, direction = 1, 
 ```
 
 ```js
-const years = d3.range(1880, latestYear + 1);
-const selectedYear = view(Scrubber(years, {
-  delay: 150,
-  loop: false,
-  initial: years.length - 1,
-  autoplay: false,
-  format: d => d
-}));
-```
-
-```js
 // Current stats
 const currentEPA = epaData.find(d => d.year === selectedYear);
 const currentCSIRO = csiroData.find(d => d.year === selectedYear);
@@ -260,6 +249,17 @@ function seaLevelChart(data, {width} = {}) {
   ${resize((width) => seaLevelChart(filteredData, {width}))}
 </div>
 
+```js
+const years = d3.range(1880, latestYear + 1);
+const selectedYear = view(Scrubber(years, {
+  delay: 150,
+  loop: false,
+  initial: years.length - 1,
+  autoplay: false,
+  format: d => d
+}));
+```
+
 ---
 
 ## 🌊 Horizon View - Compact Multi-Dataset Comparison
@@ -334,12 +334,6 @@ function horizonChart({width} = {}) {
             curve: "catmull-rom"
           });
         });
-      }),
-      // Current year marker
-      Plot.ruleX([selectedYear], {
-        stroke: "#f59e0b",
-        strokeWidth: 2,
-        strokeDasharray: "4,4"
       }),
       // Source labels
       Plot.text(datasets, (d, i) => [{
@@ -446,21 +440,8 @@ function connectedScatterplot({width} = {}) {
         tip: true,
         title: d => `${d.year}\nSea Level: ${d.value.toFixed(1)} mm\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(1)} mm/year`
       }),
-      // Highlight selected year
-      Plot.dot(
-        scatterData.filter(d => d.year === selectedYear),
-        {
-          x: "year",
-          y: "rate",
-          r: 8,
-          fill: "#f59e0b",
-          stroke: "#ffffff",
-          strokeWidth: 3
-        }
-      ),
       // Reference lines
-      Plot.ruleY([0], {stroke: "#94a3b8", strokeDasharray: "4,4"}),
-      Plot.ruleX([selectedYear], {stroke: "#f59e0b", strokeWidth: 2})
+      Plot.ruleY([0], {stroke: "#94a3b8", strokeDasharray: "4,4"})
     ]
   });
 }
@@ -536,16 +517,6 @@ function calendarHeatmap({width} = {}) {
         rx: 4,
         tip: true,
         title: d => `${d.year}\nRate: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(1)} mm/year\nTotal: ${d.absValue.toFixed(1)} mm`
-      }),
-      // Current year highlight cell (non-scroll-causing)
-      Plot.cell(calendarData.filter(d => d.year === selectedYear), {
-        x: "yearInDecade",
-        fy: "decadeLabel",
-        fill: "none",
-        stroke: "#f59e0b",
-        strokeWidth: 4,
-        inset: -1,
-        rx: 4
       }),
       // Year labels for first and last of each decade
       Plot.text(calendarData.filter(d => d.yearInDecade === 0 || d.yearInDecade === 9), {
