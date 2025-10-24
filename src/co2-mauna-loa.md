@@ -31,6 +31,11 @@ toc: false
   overflow-anchor: none !important;
 }
 
+.card, .card > *, .card svg, .card figure {
+  overflow-anchor: none !important;
+  contain: layout style paint;
+}
+
 svg text {
   fill: var(--theme-foreground) !important;
 }
@@ -91,53 +96,171 @@ const firstReading = co2Data[0];
 The famous Keeling Curve showing the relentless rise of atmospheric CO₂ from 1958 to present, measured at Mauna Loa Observatory. The zigzag pattern shows seasonal variations caused by Northern Hemisphere vegetation cycles.
 
 ```js
+const yearlyAverage = d3.rollups(
+  co2Data,
+  v => d3.mean(v, d => d.average),
+  d => Math.floor(d.year)
+).map(([year, avg]) => ({ year, average: avg }));
+```
+
+```js
 function co2Timeline({width} = {}) {
+  const height = 650;
+
   return Plot.plot({
     width,
-    height: 600,
+    height,
     marginLeft: 70,
-    marginRight: 30,
-    marginTop: 40,
-    marginBottom: 60,
-    x: { label: "Year", grid: true },
-    y: { label: "CO₂ Concentration (PPM)", grid: true, domain: [310, 440] },
+    marginRight: 40,
+    marginTop: 50,
+    marginBottom: 70,
+    x: {
+      label: "Year",
+      grid: true,
+      ticks: 10,
+      tickFormat: "d"
+    },
+    y: {
+      label: "CO₂ Concentration (parts per million)",
+      grid: true,
+      domain: [310, 435]
+    },
     marks: [
-      Plot.areaY(co2Data, { x: "year", y: "average", fill: "#7c3aed", fillOpacity: 0.15 }),
+      Plot.areaY(co2Data, {
+        x: "year",
+        y: "average",
+        fill: "url(#co2Gradient)",
+        fillOpacity: 0.3,
+        curve: "catmull-rom"
+      }),
+      Plot.line(yearlyAverage, {
+        x: "year",
+        y: "average",
+        stroke: "#3b82f6",
+        strokeWidth: 3,
+        strokeOpacity: 0.6,
+        curve: "catmull-rom"
+      }),
       Plot.line(co2Data, {
         x: "year",
         y: "average",
-        stroke: "#7c3aed",
+        stroke: "#0ea5e9",
         strokeWidth: 1.5,
         tip: true,
-        title: d => `${d.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}: ${d.average.toFixed(2)} PPM`
+        curve: "catmull-rom",
+        title: d => `${d.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}\n${d.average.toFixed(2)} PPM`
       }),
-      Plot.line(co2Data.filter(d => d.trend !== null), { x: "year", y: "trend", stroke: "#dc2626", strokeWidth: 2.5 }),
-      Plot.ruleY([350], { stroke: "#f59e0b", strokeWidth: 2, strokeDasharray: "4,4", opacity: 0.5 }),
-      Plot.text([{x: 1985, y: 350}], { x: "x", y: "y", text: ["350 PPM"], fill: "#f59e0b", fontSize: 11, dy: -6 }),
-      Plot.ruleY([400], { stroke: "#ef4444", strokeWidth: 2, strokeDasharray: "4,4", opacity: 0.5 }),
-      Plot.text([{x: 2005, y: 400}], { x: "x", y: "y", text: ["400 PPM"], fill: "#ef4444", fontSize: 11, dy: -6 }),
-      Plot.dot([latestReading], { x: "year", y: "average", r: 7, fill: "#dc2626", stroke: "white", strokeWidth: 2.5 })
+      Plot.ruleY([280], {
+        stroke: "#22c55e",
+        strokeWidth: 2,
+        strokeDasharray: "6,4",
+        opacity: 0.6
+      }),
+      Plot.text([{x: 1960, y: 280}], {
+        x: "x",
+        y: "y",
+        text: ["← Pre-industrial (280 PPM)"],
+        fill: "#22c55e",
+        fontSize: 12,
+        dy: -8,
+        textAnchor: "start"
+      }),
+      Plot.ruleY([350], {
+        stroke: "#f59e0b",
+        strokeWidth: 2,
+        strokeDasharray: "6,4",
+        opacity: 0.6
+      }),
+      Plot.text([{x: 1990, y: 350}], {
+        x: "x",
+        y: "y",
+        text: ["350 PPM (1988)"],
+        fill: "#f59e0b",
+        fontSize: 12,
+        dy: -8
+      }),
+      Plot.ruleY([400], {
+        stroke: "#ef4444",
+        strokeWidth: 2,
+        strokeDasharray: "6,4",
+        opacity: 0.6
+      }),
+      Plot.text([{x: 2015, y: 400}], {
+        x: "x",
+        y: "y",
+        text: ["400 PPM (2013)"],
+        fill: "#ef4444",
+        fontSize: 12,
+        dy: -8
+      }),
+      Plot.dot([latestReading], {
+        x: "year",
+        y: "average",
+        r: 8,
+        fill: "#dc2626",
+        stroke: "white",
+        strokeWidth: 3
+      }),
+      Plot.text([latestReading], {
+        x: "year",
+        y: "average",
+        text: d => `${d.average.toFixed(1)} PPM`,
+        fill: "#dc2626",
+        fontSize: 13,
+        fontWeight: "bold",
+        dx: 45,
+        textAnchor: "start"
+      }),
+      Plot.ruleX([1958], {
+        stroke: "#94a3b8",
+        strokeWidth: 1.5,
+        strokeDasharray: "3,3",
+        opacity: 0.4
+      }),
+      Plot.text([{x: 1958, y: 432}], {
+        x: "x",
+        y: "y",
+        text: ["Keeling starts\nmeasurements"],
+        fill: "#64748b",
+        fontSize: 11,
+        textAnchor: "middle",
+        lineAnchor: "bottom"
+      })
     ]
   });
 }
 ```
 
-<div class="card">
+<svg width="0" height="0">
+  <defs>
+    <linearGradient id="co2Gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:0.9" />
+      <stop offset="50%" style="stop-color:#06b6d4;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.2" />
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="card" style="min-height: 700px;">
   ${resize((width) => co2Timeline({width}))}
 </div>
 
 ## 🔍 Understanding the Data
 
-**The Purple Line (Measurements):** Shows actual monthly average CO₂ readings with visible seasonal oscillations. The zigzag pattern is caused by Northern Hemisphere vegetation absorbing CO₂ during summer growth and releasing it during winter decay.
+**Light Blue Line (Monthly Measurements):** Shows actual monthly average CO₂ readings with visible seasonal oscillations. The zigzag pattern is caused by Northern Hemisphere vegetation absorbing CO₂ during summer growth and releasing it during winter decay.
 
-**The Red Line (Trend):** Smoothed trend line that filters out seasonal variations to show the long-term upward trajectory of atmospheric CO₂ concentration.
+**Darker Blue Line (Yearly Average):** Smoothed annual trend line that filters out seasonal variations to show the long-term upward trajectory of atmospheric CO₂ concentration.
+
+**Gradient Fill:** Visual representation showing the dramatic increase from near pre-industrial levels to today's unprecedented concentrations.
 
 **Key Milestones:**
-- **Pre-industrial levels:** ~280 PPM
-- **1958 (Start of measurements):** ${firstReading.average.toFixed(2)} PPM
-- **350 PPM threshold:** Crossed in ${co2Data.find(d => d.average >= 350)?.date.getFullYear() || 'N/A'}
-- **400 PPM threshold:** Crossed in ${co2Data.find(d => d.average >= 400)?.date.getFullYear() || 'N/A'}
+- **Pre-industrial levels (Green line):** ~280 PPM - the baseline for human civilization
+- **1958 (Start of measurements):** ${firstReading.average.toFixed(2)} PPM - already 40 PPM above pre-industrial
+- **350 PPM threshold (Orange line):** Crossed in 1988 - considered the safe upper limit by climate scientists
+- **400 PPM threshold (Red line):** Crossed in 2013 - a symbolic and concerning milestone
 - **Today:** ${latestReading.average.toFixed(2)} PPM - levels not seen in millions of years
+
+**Rate of Change:** CO₂ is now increasing at approximately **2.5 PPM per year** - faster than any time in Earth's geological record.
 
 ---
 
