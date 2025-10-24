@@ -59,6 +59,13 @@ main > p, main > ul, main > ol {
 .card {
   min-height: 450px;
 }
+
+.spiral-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
 </style>
 
 <div class="hero">
@@ -612,7 +619,7 @@ function spiralTimeline({width} = {}) {
     .attr("width", size)
     .attr("height", size)
     .attr("viewBox", [0, 0, size, size])
-    .style("background", "#0f172a");
+    .style("background", "var(--theme-background)");
 
   // Create Archimedean spiral
   const spiralPath = d3.path();
@@ -634,7 +641,7 @@ function spiralTimeline({width} = {}) {
   svg.append("path")
     .attr("d", spiralPath.toString())
     .attr("fill", "none")
-    .attr("stroke", "#1e293b")
+    .attr("stroke", "#e2e8f0")
     .attr("stroke-width", 20)
     .attr("stroke-linecap", "round");
 
@@ -659,10 +666,10 @@ function spiralTimeline({width} = {}) {
         const radius = minRadius + (t * (maxRadius - minRadius));
         return centerY + radius * Math.sin(angle);
       })
-      .attr("r", 3)
+      .attr("r", 5)
       .attr("fill", d => colorScale(d.value))
       .attr("stroke", "white")
-      .attr("stroke-width", 0.5)
+      .attr("stroke-width", 1)
       .style("cursor", "pointer");
 
   // Add decade markers
@@ -688,7 +695,7 @@ function spiralTimeline({width} = {}) {
       .attr("text-anchor", "middle")
       .attr("font-size", "11px")
       .attr("font-weight", "bold")
-      .attr("fill", "#f1f5f9")
+      .attr("fill", "#1e293b")
       .text(d => d.year);
 
   // Add title
@@ -698,7 +705,7 @@ function spiralTimeline({width} = {}) {
     .attr("text-anchor", "middle")
     .attr("font-size", "18px")
     .attr("font-weight", "bold")
-    .attr("fill", "#f1f5f9")
+    .attr("fill", "#0f172a")
     .text("140-Year Spiral");
 
   // Add legend
@@ -725,7 +732,7 @@ function spiralTimeline({width} = {}) {
     .attr("x", legendX)
     .attr("y", legendY - 5)
     .attr("font-size", "10px")
-    .attr("fill", "#94a3b8")
+    .attr("fill", "#475569")
     .text(`${d3.min(spiralData, d => d.value).toFixed(1)} mm`);
 
   svg.append("text")
@@ -733,7 +740,7 @@ function spiralTimeline({width} = {}) {
     .attr("y", legendY - 5)
     .attr("text-anchor", "end")
     .attr("font-size", "10px")
-    .attr("fill", "#94a3b8")
+    .attr("fill", "#475569")
     .text(`${d3.max(spiralData, d => d.value).toFixed(1)} mm`);
 
   // Add interactivity
@@ -741,7 +748,7 @@ function spiralTimeline({width} = {}) {
     d3.select(this)
       .transition()
       .duration(150)
-      .attr("r", 6)
+      .attr("r", 8)
       .attr("stroke-width", 2);
 
     // Show tooltip
@@ -752,7 +759,7 @@ function spiralTimeline({width} = {}) {
       .attr("y", centerY - 40)
       .attr("width", 120)
       .attr("height", 50)
-      .attr("fill", "#1e293b")
+      .attr("fill", "#ffffff")
       .attr("stroke", "#3b82f6")
       .attr("stroke-width", 2)
       .attr("rx", 6);
@@ -763,7 +770,7 @@ function spiralTimeline({width} = {}) {
       .attr("text-anchor", "middle")
       .attr("font-size", "16px")
       .attr("font-weight", "bold")
-      .attr("fill", "#f1f5f9")
+      .attr("fill", "#0f172a")
       .text(d.year);
 
     tooltip.append("text")
@@ -778,8 +785,8 @@ function spiralTimeline({width} = {}) {
     d3.select(this)
       .transition()
       .duration(150)
-      .attr("r", 3)
-      .attr("stroke-width", 0.5);
+      .attr("r", 5)
+      .attr("stroke-width", 1);
 
     svg.select(".tooltip").remove();
   });
@@ -788,7 +795,7 @@ function spiralTimeline({width} = {}) {
 }
 ```
 
-<div class="card">
+<div class="card spiral-container">
   ${resize((width) => spiralTimeline({width}))}
 </div>
 
