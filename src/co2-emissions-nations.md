@@ -5,6 +5,10 @@ toc: false
 
 <style>
 .hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 3rem 2rem;
   background: var(--theme-background-alt);
@@ -19,12 +23,14 @@ toc: false
   font-size: 3rem;
   font-weight: 900;
   color: var(--theme-foreground-alt);
+  max-width: 100%;
 }
 
 .hero p {
   margin: 1rem 0 0;
   font-size: 1.2rem;
   color: var(--theme-foreground-muted);
+  max-width: 100%;
 }
 
 * {
@@ -39,18 +45,6 @@ toc: false
 
 svg text {
   fill: var(--theme-foreground) !important;
-}
-
-h2, h3 {
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-main > p, main > ul, main > ol {
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .card, .grid {

@@ -5,6 +5,10 @@ toc: false
 
 <style>
 .hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 3rem 2rem;
   background: var(--theme-background-alt);
@@ -19,12 +23,14 @@ toc: false
   font-size: 3rem;
   font-weight: 900;
   color: var(--theme-foreground-alt);
+  max-width: 100%;
 }
 
 .hero p {
   margin: 1rem 0 0;
   font-size: 1.2rem;
   color: var(--theme-foreground-muted);
+  max-width: 100%;
 }
 
 * {
@@ -52,18 +58,6 @@ svg text {
 [role="tooltip"] *,
 [aria-live="polite"] * {
   color: var(--theme-foreground) !important;
-}
-
-h2, h3 {
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-main > p, main > ul, main > ol {
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .card, .grid {
@@ -136,21 +130,22 @@ This visualization tells the incredible story of gold - from over a century of s
 
 ```js
 function goldTimeline({width} = {}) {
+  const isMobile = width < 640;
   return Plot.plot({
     width,
-    height: 700,
-    marginLeft: 90,
-    marginRight: 30,
-    marginBottom: 80,
+    height: isMobile ? 500 : 700,
+    marginLeft: isMobile ? 60 : 90,
+    marginRight: isMobile ? 20 : 120,
+    marginBottom: isMobile ? 60 : 80,
     marginTop: 30,
     x: {
       label: "Year",
       grid: true,
-      ticks: 15,
+      ticks: isMobile ? 5 : 15,
       tickFormat: "d"
     },
     y: {
-      label: "Price per Troy Ounce (USD, log scale)",
+      label: isMobile ? "Price (USD, log)" : "Price per Troy Ounce (USD, log scale)",
       grid: true,
       type: "log",
       ticks: [10, 20, 50, 100, 200, 500, 1000, 2000, 3000],
@@ -188,47 +183,47 @@ function goldTimeline({width} = {}) {
       Plot.text([currentPrice], {
         x: "year",
         y: "price",
-        text: d => `${d.year}: $${d.price.toFixed(2)}`,
-        dx: -60,
+        text: d => isMobile ? `$${d.price.toFixed(0)}` : `${d.year}: $${d.price.toFixed(2)}`,
+        dx: isMobile ? -30 : -60,
         dy: -10,
         fill: "#fcd34d",
-        fontSize: 13,
+        fontSize: isMobile ? 11 : 13,
         fontWeight: "bold",
         textAnchor: "end"
       }),
       // 1971 Nixon Shock marker
       Plot.ruleX([1971], {
         stroke: "#dc2626",
-        strokeWidth: 3,
+        strokeWidth: isMobile ? 2 : 3,
         strokeDasharray: "6,4",
         opacity: 0.9
       }),
       Plot.text([{year: 1971, price: 1800}], {
         x: "year",
         y: "price",
-        text: ["1971: Nixon Ends Gold Standard"],
+        text: isMobile ? ["1971: Nixon"] : ["1971: Nixon Ends Gold Standard"],
         fill: "#dc2626",
-        fontSize: 13,
+        fontSize: isMobile ? 10 : 13,
         fontWeight: "bold",
-        dx: 10,
-        textAnchor: "start"
+        dx: isMobile ? -5 : -10,
+        textAnchor: "end"
       }),
       // 2008 Financial Crisis marker
       Plot.ruleX([2008], {
         stroke: "#f59e0b",
-        strokeWidth: 3,
+        strokeWidth: isMobile ? 2 : 3,
         strokeDasharray: "6,4",
         opacity: 0.8
       }),
       Plot.text([{year: 2008, price: 900}], {
         x: "year",
         y: "price",
-        text: ["2008: Financial Crisis"],
+        text: isMobile ? ["2008: Crisis"] : ["2008: Financial Crisis"],
         fill: "#f59e0b",
-        fontSize: 13,
+        fontSize: isMobile ? 10 : 13,
         fontWeight: "bold",
-        dx: 10,
-        textAnchor: "start"
+        dx: isMobile ? -5 : -10,
+        textAnchor: "end"
       }),
       // Gold Standard baseline
       Plot.ruleY([35], {
@@ -237,7 +232,7 @@ function goldTimeline({width} = {}) {
         strokeDasharray: "3,3",
         opacity: 0.6
       }),
-      Plot.text([{year: 1900, price: 35}], {
+      ...(isMobile ? [] : [Plot.text([{year: 1900, price: 35}], {
         x: "year",
         y: "price",
         text: ["Gold Standard Era ($35) →"],
@@ -245,7 +240,7 @@ function goldTimeline({width} = {}) {
         fontSize: 13,
         dy: -8,
         textAnchor: "middle"
-      })
+      })])
     ]
   });
 }
