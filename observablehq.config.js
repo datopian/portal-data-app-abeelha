@@ -17,7 +17,13 @@ export default {
   // ],
 
   // Content to add to the head of the page, e.g. for a favicon:
-  head: '<link rel="icon" href="observable.png" type="image/png" sizes="32x32">',
+  head: `
+    <link rel="icon" href="observable.png" type="image/png" sizes="32x32">
+    <script type="module">
+      import { inject } from 'https://esm.sh/@vercel/analytics@1.5.0';
+      inject();
+    </script>
+  `,
 
   // The path to the source root.
   root: "src",
