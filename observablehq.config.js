@@ -41,5 +41,5 @@ export default {
   // preserveExtension: false, // drop .html from URLs
   // preserveIndex: false, // drop /index from URLs
   style: "style.css",
-  footer: "Built with PortalJS and Observable Framework.",
+  footer: 'Built with <a href="https://www.portaljs.com/" target="_blank" rel="noopener noreferrer">PortalJS</a> and Observable Framework.',
 };
