@@ -203,7 +203,8 @@ const yearDataTreemap = emissionsData
 
 ```js
 function emissionsTreemap({width} = {}) {
-  const height = 650;
+  const isMobile = width < 640;
+  const height = isMobile ? 500 : 650;
 
   // Prepare hierarchical data - show top 30 countries
   const topCountriesTreemap = yearDataTreemap.slice(0, 30);
@@ -265,44 +266,69 @@ function emissionsTreemap({width} = {}) {
     .append("title")
     .text(d => `${d.data.name}\n${d.data.value.toLocaleString()} million metric tons total\n${d.data.perCapita > 0 ? d.data.perCapita.toFixed(2) + ' tons per capita' : 'N/A per capita'}`);
 
+  leaf.append("clipPath")
+    .attr("id", (d, i) => `clip-${i}`)
+    .append("rect")
+    .attr("width", d => d.x1 - d.x0)
+    .attr("height", d => d.y1 - d.y0);
+
   // Country name
   leaf.append("text")
-    .attr("x", 8)
-    .attr("y", 22)
-    .attr("fill", "black")
+    .attr("clip-path", (d, i) => `url(#clip-${i})`)
+    .attr("x", 6)
+    .attr("y", isMobile ? 15 : 18)
+    .attr("fill", "#1f2937")
     .attr("font-weight", "bold")
     .attr("font-size", d => {
       const width = d.x1 - d.x0;
       const height = d.y1 - d.y0;
-      return Math.min(width / 8, height / 3.5, 16);
+      const minSize = isMobile ? 40 : 50;
+      if (width < minSize || height < 35) return 0;
+      return Math.min(width / 6, height / 3, isMobile ? 14 : 16);
     })
-    .text(d => d.data.name)
-    .each(function(d) {
+    .text(d => {
       const width = d.x1 - d.x0;
-      const textLength = this.getComputedTextLength();
-      if (textLength > width - 16) {
-        const maxLength = Math.floor((width - 16) / (textLength / d.data.name.length));
-        d3.select(this).text(d.data.name.substring(0, maxLength) + "...");
+      const minSize = isMobile ? 40 : 50;
+      if (width < minSize) return "";
+      const name = d.data.name;
+      const maxChars = Math.floor(width / (isMobile ? 5 : 6));
+      if (name.length > maxChars) {
+        return name.substring(0, maxChars - 2) + "..";
       }
-    });
+      return name;
+    })
+    .style("pointer-events", "none");
 
   // Emissions value
   leaf.append("text")
-    .attr("x", 8)
-    .attr("y", 42)
-    .attr("fill", "black")
+    .attr("clip-path", (d, i) => `url(#clip-${i})`)
+    .attr("x", 6)
+    .attr("y", d => {
+      const height = d.y1 - d.y0;
+      const width = d.x1 - d.x0;
+      const minSize = isMobile ? 40 : 50;
+      if (width < minSize || height < 35) return 0;
+      return height < 50 ? 28 : (isMobile ? 30 : 36);
+    })
+    .attr("fill", "#4b5563")
     .attr("font-size", d => {
       const width = d.x1 - d.x0;
       const height = d.y1 - d.y0;
-      return Math.min(width / 10, height / 5, 14);
+      const minSize = isMobile ? 40 : 50;
+      if (width < minSize || height < 35) return 0;
+      return Math.min(width / 8, height / 4, isMobile ? 11 : 13);
     })
-    .attr("font-weight", "600")
-    .attr("opacity", 0.85)
+    .attr("font-weight", "500")
     .text(d => {
+      const width = d.x1 - d.x0;
+      const height = d.y1 - d.y0;
+      const minSize = isMobile ? 40 : 50;
+      if (width < minSize || height < 35) return "";
       const val = d.data.value;
       if (val >= 1000) return `${(val / 1000).toFixed(1)}K MT`;
       return `${val.toFixed(0)} MT`;
-    });
+    })
+    .style("pointer-events", "none");
 
   return svg.node();
 }
