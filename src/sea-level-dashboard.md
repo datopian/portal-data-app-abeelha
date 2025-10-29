@@ -827,7 +827,7 @@ function horizonChart({width} = {}) {
 
 ## 📅 Calendar Heatmap - Annual Rate of Change Patterns
 
-This heatmap shows the annual rate of change using **CSIRO Reconstructed GMSL** data. Each cell represents one year, organized by decades. The color indicates the rate of change (blue = decrease, red = increase) calculated by subtracting consecutive year values. Data is in millimeters.
+This heatmap shows the annual rate of sea level change using **CSIRO Reconstructed GMSL** data. Each cell represents one year, organized by decades. The color indicates how much **sea level** rose or fell each year (blue = slower rise, red = faster rise) calculated by comparing consecutive year values. Values are in millimeters of sea level rise per year.
 
 ```js
 // Prepare calendar data with rate of change
