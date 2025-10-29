@@ -343,12 +343,12 @@ function glacierMultiAxisChart({width} = {}) {
 
   svg.append("g")
     .attr("transform", `translate(${marginLeft},0)`)
-    .call(d3.axisLeft(yLeftScale).ticks(isMobile ? 5 : 8).tickSize(0))
+    .call(d3.axisLeft(yLeftScale).ticks(isMobile ? 5 : 8).tickSize(0).tickFormat(d => `${d}mm`))
     .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
 
   svg.append("g")
     .attr("transform", `translate(${width - marginRight},0)`)
-    .call(d3.axisRight(yRightScale).ticks(isMobile ? 5 : 8).tickSize(0))
+    .call(d3.axisRight(yRightScale).ticks(isMobile ? 5 : 8).tickSize(0).tickFormat(d => `${d}m`))
     .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
 
   if (isMobile) {
@@ -570,12 +570,12 @@ function temperatureMultiAxisChart({width} = {}) {
 
   svg.append("g")
     .attr("transform", `translate(${marginLeft},0)`)
-    .call(d3.axisLeft(yLeftScale).ticks(isMobile ? 5 : 8).tickSize(0))
+    .call(d3.axisLeft(yLeftScale).ticks(isMobile ? 5 : 8).tickSize(0).tickFormat(d => `${d}mm`))
     .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
 
   svg.append("g")
     .attr("transform", `translate(${width - marginRight},0)`)
-    .call(d3.axisRight(yRightScale).ticks(isMobile ? 5 : 8).tickSize(0))
+    .call(d3.axisRight(yRightScale).ticks(isMobile ? 5 : 8).tickSize(0).tickFormat(d => `${d}°C`))
     .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
 
   if (isMobile) {
