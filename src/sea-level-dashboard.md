@@ -54,11 +54,17 @@ svg rect, svg path, svg circle, svg text {
   min-height: 450px;
 }
 
-.spiral-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
+.dual-chart-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .dual-chart-container {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 
@@ -72,6 +78,7 @@ svg rect, svg path, svg circle, svg text {
 const epaRaw = FileAttachment("data/epa-sea-level.csv").csv({typed: true});
 const csiroRaw = FileAttachment("data/CSIRO_Recons_gmsl_yr_2019.csv").csv({typed: true});
 const satRaw = FileAttachment("data/CSIRO_Alt_yearly.csv").csv({typed: true});
+const glaciersRaw = FileAttachment("data/glaciers.csv").csv({typed: true});
 ```
 
 ```js
@@ -94,6 +101,12 @@ const satData = (await satRaw).map(d => ({
   value: +d["GMSL (yearly)"],
   source: "Satellite"
 })).filter(d => d.year >= 1993);
+
+const glaciersData = (await glaciersRaw).map(d => ({
+  year: +d.Year,
+  value: +d["Mean cumulative mass balance"],
+  observations: +d["Number of observations"]
+})).filter(d => !isNaN(d.value) && d.year >= 1956);
 
 const allData = [...epaData, ...csiroData, ...satData];
 ```
@@ -237,6 +250,121 @@ const selectedYear = view(Scrubber(years, {
   format: d => d
 }));
 ```
+
+---
+
+## ❄️ Sea Level Rise & Glacier Mass Balance Correlation
+
+This synchronized visualization shows the relationship between global sea level rise and glacier mass loss from 1956 to 2019. As glaciers lose mass (shown as increasingly negative values), sea level rises. The data reveals a clear correlation: glacier melt contributes significantly to sea level rise. Values are in millimeters for sea level and meters of water equivalent for glacier mass balance.
+
+```js
+const correlationYears = d3.range(1956, 2020);
+const selectedCorrelationYear = view(Scrubber(correlationYears, {
+  delay: 150,
+  loop: false,
+  initial: correlationYears.length - 1,
+  autoplay: false,
+  format: d => d
+}));
+```
+
+```js
+const correlationSeaLevel = csiroData.filter(d => d.year >= 1956 && d.year <= 2019 && d.year <= selectedCorrelationYear);
+const correlationGlaciers = glaciersData.filter(d => d.year >= 1956 && d.year <= 2019 && d.year <= selectedCorrelationYear);
+```
+
+```js
+function seaLevelCorrelationChart({width} = {}) {
+  return Plot.plot({
+    title: "Sea Level Rise (CSIRO)",
+    width,
+    height: 350,
+    marginLeft: 60,
+    marginRight: 20,
+    x: {label: "Year", grid: true, domain: [1956, 2019]},
+    y: {label: "Sea Level Change (mm)", grid: true},
+    marks: [
+      Plot.line(correlationSeaLevel, {
+        x: "year",
+        y: "value",
+        stroke: "#059669",
+        strokeWidth: 3,
+        curve: "catmull-rom"
+      }),
+      Plot.dot(correlationSeaLevel, {
+        x: "year",
+        y: "value",
+        fill: "#059669",
+        r: 2
+      }),
+      Plot.ruleX([selectedCorrelationYear], {stroke: "#f59e0b", strokeWidth: 2, strokeDasharray: "4,4"}),
+      Plot.dot(
+        correlationSeaLevel.filter(d => d.year === selectedCorrelationYear),
+        {
+          x: "year",
+          y: "value",
+          fill: "#f59e0b",
+          r: 6,
+          stroke: "white",
+          strokeWidth: 2
+        }
+      ),
+      Plot.ruleY([0], {stroke: "#94a3b8", strokeDasharray: "2,2"})
+    ]
+  });
+}
+```
+
+```js
+function glacierCorrelationChart({width} = {}) {
+  return Plot.plot({
+    title: "Glacier Mass Balance (WGMS)",
+    width,
+    height: 350,
+    marginLeft: 60,
+    marginRight: 20,
+    x: {label: "Year", grid: true, domain: [1956, 2019]},
+    y: {label: "Cumulative Mass Balance (m)", grid: true},
+    marks: [
+      Plot.line(correlationGlaciers, {
+        x: "year",
+        y: "value",
+        stroke: "#3b82f6",
+        strokeWidth: 3,
+        curve: "catmull-rom"
+      }),
+      Plot.dot(correlationGlaciers, {
+        x: "year",
+        y: "value",
+        fill: "#3b82f6",
+        r: 2
+      }),
+      Plot.ruleX([selectedCorrelationYear], {stroke: "#f59e0b", strokeWidth: 2, strokeDasharray: "4,4"}),
+      Plot.dot(
+        correlationGlaciers.filter(d => d.year === selectedCorrelationYear),
+        {
+          x: "year",
+          y: "value",
+          fill: "#f59e0b",
+          r: 6,
+          stroke: "white",
+          strokeWidth: 2
+        }
+      ),
+      Plot.ruleY([0], {stroke: "#94a3b8", strokeDasharray: "2,2"})
+    ]
+  });
+}
+```
+
+<div class="dual-chart-container">
+  <div class="card">
+    ${resize((width) => seaLevelCorrelationChart({width}))}
+  </div>
+  <div class="card">
+    ${resize((width) => glacierCorrelationChart({width}))}
+  </div>
+</div>
 
 ---
 
