@@ -53,19 +53,6 @@ svg rect, svg path, svg circle, svg text {
 .card {
   min-height: 450px;
 }
-
-.dual-chart-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-@media (max-width: 768px) {
-  .dual-chart-container {
-    grid-template-columns: 1fr;
-  }
-}
 </style>
 
 <div class="hero">
@@ -79,6 +66,7 @@ const epaRaw = FileAttachment("data/epa-sea-level.csv").csv({typed: true});
 const csiroRaw = FileAttachment("data/CSIRO_Recons_gmsl_yr_2019.csv").csv({typed: true});
 const satRaw = FileAttachment("data/CSIRO_Alt_yearly.csv").csv({typed: true});
 const glaciersRaw = FileAttachment("data/glaciers.csv").csv({typed: true});
+const globalTempRaw = FileAttachment("data/global-temp-annual.csv").csv({typed: true});
 ```
 
 ```js
@@ -107,6 +95,14 @@ const glaciersData = (await glaciersRaw).map(d => ({
   value: +d["Mean cumulative mass balance"],
   observations: +d["Number of observations"]
 })).filter(d => !isNaN(d.value) && d.year >= 1956);
+
+const globalTempData = (await globalTempRaw)
+  .filter(d => d.Source === "GISTEMP")
+  .map(d => ({
+    year: +d.Year,
+    value: +d.Mean
+  }))
+  .filter(d => !isNaN(d.value) && d.year >= 1880);
 
 const allData = [...epaData, ...csiroData, ...satData];
 ```
@@ -255,7 +251,7 @@ const selectedYear = view(Scrubber(years, {
 
 ## ❄️ Sea Level Rise & Glacier Mass Balance Correlation
 
-This synchronized visualization shows the relationship between global sea level rise and glacier mass loss from 1956 to 2019. As glaciers lose mass (shown as increasingly negative values), sea level rises. The data reveals a clear correlation: glacier melt contributes significantly to sea level rise. Values are in millimeters for sea level and meters of water equivalent for glacier mass balance.
+This multi-axis visualization shows the relationship between global sea level rise and glacier mass loss from 1956 to 2019. As glaciers lose mass (shown as increasingly negative values on the right axis), sea level rises (left axis). The inverse correlation reveals how glacier melt contributes significantly to sea level rise.
 
 ```js
 const correlationYears = d3.range(1956, 2020);
@@ -274,96 +270,435 @@ const correlationGlaciers = glaciersData.filter(d => d.year >= 1956 && d.year <=
 ```
 
 ```js
-function seaLevelCorrelationChart({width} = {}) {
-  return Plot.plot({
-    title: "Sea Level Rise (CSIRO)",
-    width,
-    height: 350,
-    marginLeft: 60,
-    marginRight: 20,
-    x: {label: "Year", grid: true, domain: [1956, 2019]},
-    y: {label: "Sea Level Change (mm)", grid: true},
-    marks: [
-      Plot.line(correlationSeaLevel, {
-        x: "year",
-        y: "value",
-        stroke: "#059669",
-        strokeWidth: 3,
-        curve: "catmull-rom"
-      }),
-      Plot.dot(correlationSeaLevel, {
-        x: "year",
-        y: "value",
-        fill: "#059669",
-        r: 2
-      }),
-      Plot.ruleX([selectedCorrelationYear], {stroke: "#f59e0b", strokeWidth: 2, strokeDasharray: "4,4"}),
-      Plot.dot(
-        correlationSeaLevel.filter(d => d.year === selectedCorrelationYear),
-        {
-          x: "year",
-          y: "value",
-          fill: "#f59e0b",
-          r: 6,
-          stroke: "white",
-          strokeWidth: 2
-        }
-      ),
-      Plot.ruleY([0], {stroke: "#94a3b8", strokeDasharray: "2,2"})
-    ]
-  });
+function glacierMultiAxisChart({width} = {}) {
+  const isMobile = width < 640;
+  const height = isMobile ? 350 : 400;
+  const marginTop = 40;
+  const marginRight = isMobile ? 50 : 100;
+  const marginBottom = isMobile ? 100 : 80;
+  const marginLeft = isMobile ? 50 : 80;
+
+  const xScale = d3.scaleLinear()
+    .domain([1956, 2019])
+    .range([marginLeft, width - marginRight]);
+
+  const yLeftScale = d3.scaleLinear()
+    .domain([d3.min(correlationSeaLevel, d => d.value), d3.max(correlationSeaLevel, d => d.value)])
+    .range([height - marginBottom, marginTop])
+    .nice();
+
+  const yRightScale = d3.scaleLinear()
+    .domain([d3.min(glaciersData.filter(d => d.year >= 1956 && d.year <= 2019), d => d.value), d3.max(glaciersData.filter(d => d.year >= 1956 && d.year <= 2019), d => d.value)])
+    .range([height - marginBottom, marginTop])
+    .nice();
+
+  const lineSeaLevel = d3.line()
+    .x(d => xScale(d.year))
+    .y(d => yLeftScale(d.value))
+    .curve(d3.curveCatmullRom);
+
+  const lineGlacier = d3.line()
+    .x(d => xScale(d.year))
+    .y(d => yRightScale(d.value))
+    .curve(d3.curveCatmullRom);
+
+  const svg = d3.create("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; background: white;");
+
+  svg.append("g")
+    .attr("class", "grid")
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(d3.axisBottom(xScale)
+      .tickFormat("")
+      .tickSize(-(height - marginTop - marginBottom)))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.selectAll(".tick line")
+      .attr("stroke", "#e5e7eb")
+      .attr("stroke-opacity", 0.7));
+
+  svg.append("g")
+    .attr("class", "grid")
+    .attr("transform", `translate(${marginLeft},0)`)
+    .call(d3.axisLeft(yLeftScale)
+      .tickFormat("")
+      .tickSize(-(width - marginLeft - marginRight)))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.selectAll(".tick line")
+      .attr("stroke", "#e5e7eb")
+      .attr("stroke-opacity", 0.7));
+
+  svg.append("g")
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(isMobile ? 5 : 10).tickSize(0))
+    .call(g => g.append("text")
+      .attr("x", width / 2)
+      .attr("y", isMobile ? 75 : 65)
+      .attr("fill", "currentColor")
+      .attr("text-anchor", "middle")
+      .attr("font-size", isMobile ? "11px" : "13px")
+      .text("Year"));
+
+  svg.append("g")
+    .attr("transform", `translate(${marginLeft},0)`)
+    .call(d3.axisLeft(yLeftScale).ticks(isMobile ? 5 : 8).tickSize(0))
+    .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
+
+  svg.append("g")
+    .attr("transform", `translate(${width - marginRight},0)`)
+    .call(d3.axisRight(yRightScale).ticks(isMobile ? 5 : 8).tickSize(0))
+    .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
+
+  if (isMobile) {
+    const legend = svg.append("g")
+      .attr("transform", `translate(${width / 2 - 110}, ${height - 55})`);
+
+    legend.append("line")
+      .attr("x1", 0)
+      .attr("x2", 20)
+      .attr("y1", 0)
+      .attr("y2", 0)
+      .attr("stroke", "#059669")
+      .attr("stroke-width", 2);
+
+    legend.append("text")
+      .attr("x", 23)
+      .attr("y", 3)
+      .attr("fill", "currentColor")
+      .attr("font-size", "9px")
+      .text("Sea Level (mm)");
+
+    legend.append("line")
+      .attr("x1", 0)
+      .attr("x2", 20)
+      .attr("y1", 15)
+      .attr("y2", 15)
+      .attr("stroke", "#3b82f6")
+      .attr("stroke-width", 2);
+
+    legend.append("text")
+      .attr("x", 23)
+      .attr("y", 18)
+      .attr("fill", "currentColor")
+      .attr("font-size", "9px")
+      .text("Glacier Mass (m)");
+  } else {
+    const legend = svg.append("g")
+      .attr("transform", `translate(${width / 2 - 200}, ${height - 35})`);
+
+    legend.append("line")
+      .attr("x1", 0)
+      .attr("x2", 30)
+      .attr("y1", 0)
+      .attr("y2", 0)
+      .attr("stroke", "#059669")
+      .attr("stroke-width", 3);
+
+    legend.append("text")
+      .attr("x", 35)
+      .attr("y", 4)
+      .attr("fill", "currentColor")
+      .attr("font-size", "12px")
+      .text("Sea Level Rise (mm)");
+
+    legend.append("line")
+      .attr("x1", 200)
+      .attr("x2", 230)
+      .attr("y1", 0)
+      .attr("y2", 0)
+      .attr("stroke", "#3b82f6")
+      .attr("stroke-width", 3);
+
+    legend.append("text")
+      .attr("x", 235)
+      .attr("y", 4)
+      .attr("fill", "currentColor")
+      .attr("font-size", "12px")
+      .text("Glacier Mass Balance (m)");
+  }
+
+  svg.append("path")
+    .datum(correlationSeaLevel)
+    .attr("fill", "none")
+    .attr("stroke", "#059669")
+    .attr("stroke-width", 3)
+    .attr("d", lineSeaLevel);
+
+  svg.append("path")
+    .datum(correlationGlaciers)
+    .attr("fill", "none")
+    .attr("stroke", "#3b82f6")
+    .attr("stroke-width", 3)
+    .attr("d", lineGlacier);
+
+  if (selectedCorrelationYear >= 1956) {
+    svg.append("line")
+      .attr("x1", xScale(selectedCorrelationYear))
+      .attr("x2", xScale(selectedCorrelationYear))
+      .attr("y1", marginTop)
+      .attr("y2", height - marginBottom)
+      .attr("stroke", "#f59e0b")
+      .attr("stroke-width", 2)
+      .attr("stroke-dasharray", "4,4");
+
+    const seaLevelPoint = correlationSeaLevel.find(d => d.year === selectedCorrelationYear);
+    if (seaLevelPoint) {
+      svg.append("circle")
+        .attr("cx", xScale(seaLevelPoint.year))
+        .attr("cy", yLeftScale(seaLevelPoint.value))
+        .attr("r", 6)
+        .attr("fill", "#059669")
+        .attr("stroke", "white")
+        .attr("stroke-width", 2);
+    }
+
+    const glacierPoint = correlationGlaciers.find(d => d.year === selectedCorrelationYear);
+    if (glacierPoint) {
+      svg.append("circle")
+        .attr("cx", xScale(glacierPoint.year))
+        .attr("cy", yRightScale(glacierPoint.value))
+        .attr("r", 6)
+        .attr("fill", "#3b82f6")
+        .attr("stroke", "white")
+        .attr("stroke-width", 2);
+    }
+  }
+
+  return svg.node();
 }
+```
+
+<div class="card">
+  ${resize((width) => glacierMultiAxisChart({width}))}
+</div>
+
+---
+
+## 🌡️ Sea Level Rise & Global Temperature Correlation
+
+This multi-axis visualization shows the relationship between global sea level rise and global temperature anomalies from 1880 to 2019. Temperature anomalies (right axis) represent deviations from the 1951-1980 baseline. Both trends rise together, demonstrating how thermal expansion of ocean water and accelerated ice melt from warming contribute to sea level rise (left axis).
+
+```js
+const tempCorrelationYears = d3.range(1880, 2020);
+const selectedTempYear = view(Scrubber(tempCorrelationYears, {
+  delay: 150,
+  loop: false,
+  initial: tempCorrelationYears.length - 1,
+  autoplay: false,
+  format: d => d
+}));
 ```
 
 ```js
-function glacierCorrelationChart({width} = {}) {
-  return Plot.plot({
-    title: "Glacier Mass Balance (WGMS)",
-    width,
-    height: 350,
-    marginLeft: 60,
-    marginRight: 20,
-    x: {label: "Year", grid: true, domain: [1956, 2019]},
-    y: {label: "Cumulative Mass Balance (m)", grid: true},
-    marks: [
-      Plot.line(correlationGlaciers, {
-        x: "year",
-        y: "value",
-        stroke: "#3b82f6",
-        strokeWidth: 3,
-        curve: "catmull-rom"
-      }),
-      Plot.dot(correlationGlaciers, {
-        x: "year",
-        y: "value",
-        fill: "#3b82f6",
-        r: 2
-      }),
-      Plot.ruleX([selectedCorrelationYear], {stroke: "#f59e0b", strokeWidth: 2, strokeDasharray: "4,4"}),
-      Plot.dot(
-        correlationGlaciers.filter(d => d.year === selectedCorrelationYear),
-        {
-          x: "year",
-          y: "value",
-          fill: "#f59e0b",
-          r: 6,
-          stroke: "white",
-          strokeWidth: 2
-        }
-      ),
-      Plot.ruleY([0], {stroke: "#94a3b8", strokeDasharray: "2,2"})
-    ]
-  });
+const tempSeaLevel = csiroData.filter(d => d.year >= 1880 && d.year <= 2019 && d.year <= selectedTempYear);
+const tempGlobalTemp = globalTempData.filter(d => d.year >= 1880 && d.year <= 2019 && d.year <= selectedTempYear);
+```
+
+```js
+function temperatureMultiAxisChart({width} = {}) {
+  const isMobile = width < 640;
+  const height = isMobile ? 350 : 400;
+  const marginTop = 40;
+  const marginRight = isMobile ? 50 : 100;
+  const marginBottom = isMobile ? 100 : 80;
+  const marginLeft = isMobile ? 50 : 80;
+
+  const xScale = d3.scaleLinear()
+    .domain([1880, 2019])
+    .range([marginLeft, width - marginRight]);
+
+  const yLeftScale = d3.scaleLinear()
+    .domain([d3.min(csiroData.filter(d => d.year >= 1880 && d.year <= 2019), d => d.value), d3.max(csiroData.filter(d => d.year >= 1880 && d.year <= 2019), d => d.value)])
+    .range([height - marginBottom, marginTop])
+    .nice();
+
+  const yRightScale = d3.scaleLinear()
+    .domain([d3.min(globalTempData.filter(d => d.year >= 1880 && d.year <= 2019), d => d.value), d3.max(globalTempData.filter(d => d.year >= 1880 && d.year <= 2019), d => d.value)])
+    .range([height - marginBottom, marginTop])
+    .nice();
+
+  const lineSeaLevel = d3.line()
+    .x(d => xScale(d.year))
+    .y(d => yLeftScale(d.value))
+    .curve(d3.curveCatmullRom);
+
+  const lineTemp = d3.line()
+    .x(d => xScale(d.year))
+    .y(d => yRightScale(d.value))
+    .curve(d3.curveCatmullRom);
+
+  const svg = d3.create("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; background: white;");
+
+  svg.append("g")
+    .attr("class", "grid")
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(d3.axisBottom(xScale)
+      .tickFormat("")
+      .tickSize(-(height - marginTop - marginBottom)))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.selectAll(".tick line")
+      .attr("stroke", "#e5e7eb")
+      .attr("stroke-opacity", 0.7));
+
+  svg.append("g")
+    .attr("class", "grid")
+    .attr("transform", `translate(${marginLeft},0)`)
+    .call(d3.axisLeft(yLeftScale)
+      .tickFormat("")
+      .tickSize(-(width - marginLeft - marginRight)))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.selectAll(".tick line")
+      .attr("stroke", "#e5e7eb")
+      .attr("stroke-opacity", 0.7));
+
+  svg.append("g")
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(isMobile ? 5 : 10).tickSize(0))
+    .call(g => g.append("text")
+      .attr("x", width / 2)
+      .attr("y", isMobile ? 75 : 65)
+      .attr("fill", "currentColor")
+      .attr("text-anchor", "middle")
+      .attr("font-size", isMobile ? "11px" : "13px")
+      .text("Year"));
+
+  svg.append("g")
+    .attr("transform", `translate(${marginLeft},0)`)
+    .call(d3.axisLeft(yLeftScale).ticks(isMobile ? 5 : 8).tickSize(0))
+    .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
+
+  svg.append("g")
+    .attr("transform", `translate(${width - marginRight},0)`)
+    .call(d3.axisRight(yRightScale).ticks(isMobile ? 5 : 8).tickSize(0))
+    .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
+
+  if (isMobile) {
+    const legend = svg.append("g")
+      .attr("transform", `translate(${width / 2 - 110}, ${height - 55})`);
+
+    legend.append("line")
+      .attr("x1", 0)
+      .attr("x2", 20)
+      .attr("y1", 0)
+      .attr("y2", 0)
+      .attr("stroke", "#059669")
+      .attr("stroke-width", 2);
+
+    legend.append("text")
+      .attr("x", 23)
+      .attr("y", 3)
+      .attr("fill", "currentColor")
+      .attr("font-size", "9px")
+      .text("Sea Level (mm)");
+
+    legend.append("line")
+      .attr("x1", 0)
+      .attr("x2", 20)
+      .attr("y1", 15)
+      .attr("y2", 15)
+      .attr("stroke", "#dc2626")
+      .attr("stroke-width", 2);
+
+    legend.append("text")
+      .attr("x", 23)
+      .attr("y", 18)
+      .attr("fill", "currentColor")
+      .attr("font-size", "9px")
+      .text("Temperature (°C)");
+  } else {
+    const legend = svg.append("g")
+      .attr("transform", `translate(${width / 2 - 220}, ${height - 35})`);
+
+    legend.append("line")
+      .attr("x1", 0)
+      .attr("x2", 30)
+      .attr("y1", 0)
+      .attr("y2", 0)
+      .attr("stroke", "#059669")
+      .attr("stroke-width", 3);
+
+    legend.append("text")
+      .attr("x", 35)
+      .attr("y", 4)
+      .attr("fill", "currentColor")
+      .attr("font-size", "12px")
+      .text("Sea Level Rise (mm)");
+
+    legend.append("line")
+      .attr("x1", 200)
+      .attr("x2", 230)
+      .attr("y1", 0)
+      .attr("y2", 0)
+      .attr("stroke", "#dc2626")
+      .attr("stroke-width", 3);
+
+    legend.append("text")
+      .attr("x", 235)
+      .attr("y", 4)
+      .attr("fill", "currentColor")
+      .attr("font-size", "12px")
+      .text("Temperature Anomaly (°C)");
+  }
+
+  svg.append("path")
+    .datum(tempSeaLevel)
+    .attr("fill", "none")
+    .attr("stroke", "#059669")
+    .attr("stroke-width", 3)
+    .attr("d", lineSeaLevel);
+
+  svg.append("path")
+    .datum(tempGlobalTemp)
+    .attr("fill", "none")
+    .attr("stroke", "#dc2626")
+    .attr("stroke-width", 3)
+    .attr("d", lineTemp);
+
+  if (selectedTempYear >= 1880) {
+    svg.append("line")
+      .attr("x1", xScale(selectedTempYear))
+      .attr("x2", xScale(selectedTempYear))
+      .attr("y1", marginTop)
+      .attr("y2", height - marginBottom)
+      .attr("stroke", "#f59e0b")
+      .attr("stroke-width", 2)
+      .attr("stroke-dasharray", "4,4");
+
+    const seaLevelPoint = tempSeaLevel.find(d => d.year === selectedTempYear);
+    if (seaLevelPoint) {
+      svg.append("circle")
+        .attr("cx", xScale(seaLevelPoint.year))
+        .attr("cy", yLeftScale(seaLevelPoint.value))
+        .attr("r", 6)
+        .attr("fill", "#059669")
+        .attr("stroke", "white")
+        .attr("stroke-width", 2);
+    }
+
+    const tempPoint = tempGlobalTemp.find(d => d.year === selectedTempYear);
+    if (tempPoint) {
+      svg.append("circle")
+        .attr("cx", xScale(tempPoint.year))
+        .attr("cy", yRightScale(tempPoint.value))
+        .attr("r", 6)
+        .attr("fill", "#dc2626")
+        .attr("stroke", "white")
+        .attr("stroke-width", 2);
+    }
+  }
+
+  return svg.node();
 }
 ```
 
-<div class="dual-chart-container">
-  <div class="card">
-    ${resize((width) => seaLevelCorrelationChart({width}))}
-  </div>
-  <div class="card">
-    ${resize((width) => glacierCorrelationChart({width}))}
-  </div>
+<div class="card">
+  ${resize((width) => temperatureMultiAxisChart({width}))}
 </div>
 
 ---
@@ -374,8 +709,9 @@ This horizon chart shows all three datasets in a compact, layered format. Each r
 
 ```js
 function horizonChart({width} = {}) {
+  const isMobile = width < 640;
   const bands = 4;
-  const bandHeight = 50;
+  const bandHeight = isMobile ? 40 : 50;
   const height = bandHeight * bands;
   const datasets = ["EPA", "CSIRO", "Satellite"];
 
@@ -395,11 +731,14 @@ function horizonChart({width} = {}) {
 
   return Plot.plot({
     width,
-    height: height * 3 + 120,
-    marginLeft: 100,
-    marginRight: 20,
-    marginTop: 30,
-    marginBottom: 30,
+    height: height * 3 + (isMobile ? 100 : 120),
+    marginLeft: isMobile ? 50 : 100,
+    marginRight: isMobile ? 10 : 20,
+    marginTop: isMobile ? 20 : 30,
+    marginBottom: isMobile ? 40 : 30,
+    style: {
+      fontSize: isMobile ? "10px" : "12px"
+    },
     fy: {
       domain: datasets,
       label: null
@@ -407,7 +746,9 @@ function horizonChart({width} = {}) {
     x: {
       label: "Year",
       domain: [1880, latestYear],
-      grid: true
+      grid: true,
+      ticks: isMobile ? 5 : 10,
+      tickSize: 6
     },
     y: {
       axis: null,
@@ -418,7 +759,7 @@ function horizonChart({width} = {}) {
       domain: [0, bands]
     },
     facet: {
-      marginLeft: 100
+      marginLeft: isMobile ? 50 : 100
     },
     marks: [
       // Draw overlapping bands for each dataset
@@ -453,10 +794,10 @@ function horizonChart({width} = {}) {
         y: "y",
         text: "text",
         fy: "fy",
-        dx: -10,
+        dx: isMobile ? -5 : -10,
         textAnchor: "end",
         fill: d => d === "EPA" ? "#4f46e5" : d === "CSIRO" ? "#059669" : "#dc2626",
-        fontSize: 12,
+        fontSize: isMobile ? 10 : 12,
         fontWeight: "bold"
       }),
       // Interactive tooltip
@@ -639,6 +980,8 @@ Since the start of the altimeter record in 1993, global average sea level rose a
 
 - https://datahub.io/core/sea-level-rise
 - https://github.com/datasets/sea-level-rise
+- https://datahub.io/core/global-temp
+- https://datahub.io/core/glacier-mass-balance
 - https://www.epa.gov/climate-indicators/climate-change-indicators-sea-level
 - https://www.cmar.csiro.au/sealevel/sl_hist_last_decades.html
 
