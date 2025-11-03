@@ -14,7 +14,17 @@ toc: false
 
 Explore the interactive data stories below:
 
-<div class="grid grid-cols-3" style="grid-auto-rows: auto;">
+<div class="grid grid-cols-2" style="grid-auto-rows: auto;">
+  <div class="card" style="padding: 2rem;">
+    <h3 style="margin-top: 0;">🌍 <a href="/global-warming-dashboard" style="text-decoration: none; color: inherit;">Global Warming Effects</a></h3>
+    <p>Comprehensive dashboard showing interconnected climate indicators. Explore how temperature, sea level, and glaciers respond to global warming through interactive visualizations.</p>
+    <a href="/global-warming-dashboard" style="color: var(--theme-foreground-focus);">View dashboard →</a>
+  </div>
+  <div class="card" style="padding: 2rem;">
+    <h3 style="margin-top: 0;">🌊 <a href="/sea-level-dashboard" style="text-decoration: none; color: inherit;">Sea Level Rise</a></h3>
+    <p>Monitor global mean sea level changes from 1880 to present. Multiple datasets and unique visualizations reveal the accelerating impact of climate change on our oceans.</p>
+    <a href="/sea-level-dashboard" style="color: var(--theme-foreground-focus);">View visualization →</a>
+  </div>
   <div class="card" style="padding: 2rem;">
     <h3 style="margin-top: 0;">🌍 <a href="/co2-emissions-nations" style="text-decoration: none; color: inherit;">Global CO₂ Emissions</a></h3>
     <p>Track fossil fuel and cement emissions by nation from 1751 to 2020. Explore how different countries contribute to global carbon emissions over 270 years of industrial history.</p>
@@ -24,11 +34,6 @@ Explore the interactive data stories below:
     <h3 style="margin-top: 0;">🌡️ <a href="/co2-mauna-loa" style="text-decoration: none; color: inherit;">The Keeling Curve</a></h3>
     <p>Witness atmospheric CO₂ concentration measurements from Mauna Loa Observatory since 1958. The iconic "Keeling Curve" shows our planet's changing atmosphere in real-time.</p>
     <a href="/co2-mauna-loa" style="color: var(--theme-foreground-focus);">View visualization →</a>
-  </div>
-  <div class="card" style="padding: 2rem;">
-    <h3 style="margin-top: 0;">🌊 <a href="/sea-level-dashboard" style="text-decoration: none; color: inherit;">Sea Level Rise</a></h3>
-    <p>Monitor global mean sea level changes from 1880 to present. Multiple datasets and unique visualizations reveal the accelerating impact of climate change on our oceans.</p>
-    <a href="/sea-level-dashboard" style="color: var(--theme-foreground-focus);">View visualization →</a>
   </div>
 </div>
 
