@@ -16,6 +16,7 @@ toc: false
   border-radius: 16px;
   margin-bottom: 2rem;
   border: 2px solid var(--theme-foreground-faint);
+  overflow-anchor: none !important;
 }
 
 .hero h1 {
@@ -33,11 +34,11 @@ toc: false
   max-width: 100%;
 }
 
-svg rect, svg path, svg circle, svg text {
-  transition: opacity 0.5s ease-in-out, fill 0.5s ease-in-out;
+* {
+  overflow-anchor: none !important;
 }
 
-* {
+body {
   overflow-anchor: none !important;
 }
 
@@ -50,8 +51,18 @@ svg rect, svg path, svg circle, svg text {
   max-width: 100% !important;
 }
 
-.card {
+.chart-container {
+  overflow-anchor: none !important;
+  contain: layout style paint;
   min-height: 450px;
+}
+
+.chart-grid {
+  overflow-anchor: none !important;
+}
+
+svg, svg * {
+  overflow-anchor: none !important;
 }
 
 .stat-grid {
@@ -59,6 +70,7 @@ svg rect, svg path, svg circle, svg text {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
   margin: 2rem 0;
+  overflow-anchor: none !important;
 }
 
 .stat-card {
@@ -67,6 +79,7 @@ svg rect, svg path, svg circle, svg text {
   border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
+  overflow-anchor: none !important;
 }
 
 .stat-value {
@@ -91,6 +104,48 @@ svg rect, svg path, svg circle, svg text {
 
 .positive { color: #dc2626; }
 .negative { color: #059669; }
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 2rem 0;
+  overflow-anchor: none !important;
+  contain: layout;
+}
+
+@media (max-width: 768px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container {
+    min-height: 400px;
+  }
+}
+
+.chart-container {
+  background: white;
+  border: 1px solid var(--theme-foreground-faint);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.chart-container h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--theme-foreground);
+  overflow-anchor: none !important;
+}
+
+.chart-container > * {
+  overflow-anchor: none !important;
+}
+
+form, form * {
+  overflow-anchor: none !important;
+}
 </style>
 
 <div class="hero">
@@ -160,9 +215,7 @@ const glacierChange = latestGlacier - baselineGlacier;
   </div>
 </div>
 
----
-
-## 📊 Combined Climate Indicators (1880-2019)
+## Climate Indicators Dashboard
 
 ```js
 function Scrubber(values, {format = value => value, initial = 0, direction = 1, delay = null, autoplay = true, loop = true, loopDelay = null, alternate = false} = {}) {
@@ -202,11 +255,11 @@ const filteredSeaLevel = csiroData.filter(d => d.year <= selectedDashboardYear);
 ```js
 function tripleAxisChart({width} = {}) {
   const isMobile = width < 640;
-  const height = isMobile ? 400 : 500;
-  const marginTop = 40;
-  const marginRight = isMobile ? 60 : 80;
-  const marginBottom = isMobile ? 80 : 60;
-  const marginLeft = isMobile ? 60 : 80;
+  const height = isMobile ? 400 : 420;
+  const marginTop = 30;
+  const marginRight = isMobile ? 55 : 70;
+  const marginBottom = isMobile ? 90 : 80;
+  const marginLeft = isMobile ? 55 : 70;
 
   const xScale = d3.scaleLinear()
     .domain([1880, 2019])
@@ -232,11 +285,44 @@ function tripleAxisChart({width} = {}) {
     .y(d => ySeaLevelScale(d.value))
     .curve(d3.curveCatmullRom);
 
-  const svg = d3.create("svg")
+  const container = d3.create("div")
+    .style("position", "relative");
+
+  const svg = container.append("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
-    .attr("style", "max-width: 100%; height: auto; background: white;");
+    .attr("style", "max-width: 100%; height: auto; background: white; display: block;");
+
+  const tooltip = container.append("div")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .style("background", "white")
+    .style("border", "1px solid #ccc")
+    .style("border-radius", "4px")
+    .style("padding", "8px")
+    .style("font-size", "12px")
+    .style("font-family", "system-ui, sans-serif")
+    .style("pointer-events", "none")
+    .style("box-shadow", "0 2px 4px rgba(0,0,0,0.1)")
+    .style("z-index", "1000")
+    .style("line-height", "1.5");
+
+  const hoverCircleTemp = svg.append("circle")
+    .attr("r", 5)
+    .attr("fill", "#dc2626")
+    .attr("stroke", "white")
+    .attr("stroke-width", 2)
+    .style("visibility", "hidden")
+    .style("pointer-events", "none");
+
+  const hoverCircleSea = svg.append("circle")
+    .attr("r", 5)
+    .attr("fill", "#059669")
+    .attr("stroke", "white")
+    .attr("stroke-width", 2)
+    .style("visibility", "hidden")
+    .style("pointer-events", "none");
 
   svg.append("g")
     .attr("class", "grid")
@@ -262,24 +348,21 @@ function tripleAxisChart({width} = {}) {
 
   svg.append("g")
     .attr("transform", `translate(0,${height - marginBottom})`)
-    .call(d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(isMobile ? 5 : 10).tickSize(0))
-    .call(g => g.append("text")
-      .attr("x", width / 2)
-      .attr("y", isMobile ? 55 : 45)
-      .attr("fill", "currentColor")
-      .attr("text-anchor", "middle")
-      .attr("font-size", isMobile ? "11px" : "13px")
-      .text("Year"));
+    .call(d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(isMobile ? 5 : 10).tickSize(0).tickPadding(8))
+    .call(g => g.select(".domain").attr("stroke", "#ccc"))
+    .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "11px"));
 
   svg.append("g")
     .attr("transform", `translate(${marginLeft},0)`)
-    .call(d3.axisLeft(yTempScale).ticks(isMobile ? 5 : 8).tickSize(0).tickFormat(d => `${d}°C`))
-    .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
+    .call(d3.axisLeft(yTempScale).ticks(isMobile ? 5 : 7).tickSize(0).tickPadding(6).tickFormat(d => `${d}°C`))
+    .call(g => g.select(".domain").attr("stroke", "#ccc"))
+    .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "11px"));
 
   svg.append("g")
     .attr("transform", `translate(${width - marginRight},0)`)
-    .call(d3.axisRight(ySeaLevelScale).ticks(isMobile ? 5 : 8).tickSize(0).tickFormat(d => `${d}mm`))
-    .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "12px"));
+    .call(d3.axisRight(ySeaLevelScale).ticks(isMobile ? 5 : 7).tickSize(0).tickPadding(6).tickFormat(d => `${d}mm`))
+    .call(g => g.select(".domain").attr("stroke", "#ccc"))
+    .call(g => g.selectAll("text").attr("font-size", isMobile ? "10px" : "11px"));
 
   svg.append("path")
     .datum(filteredTemp)
@@ -294,6 +377,64 @@ function tripleAxisChart({width} = {}) {
     .attr("stroke", "#059669")
     .attr("stroke-width", 3)
     .attr("d", lineSeaLevel);
+
+  svg.append("rect")
+    .attr("x", marginLeft)
+    .attr("y", marginTop)
+    .attr("width", width - marginLeft - marginRight)
+    .attr("height", height - marginTop - marginBottom)
+    .attr("fill", "none")
+    .attr("pointer-events", "all")
+    .on("mousemove", function(event) {
+      const [mx] = d3.pointer(event, svg.node());
+      const year = Math.round(xScale.invert(mx));
+
+      const tempData = filteredTemp.find(d => d.year === year);
+      const seaData = filteredSeaLevel.find(d => d.year === year);
+
+      if (tempData && seaData) {
+        const tempX = xScale(tempData.year);
+        const tempY = yTempScale(tempData.value);
+        const seaY = ySeaLevelScale(seaData.value);
+
+        hoverCircleTemp
+          .attr("cx", tempX)
+          .attr("cy", tempY)
+          .style("visibility", "visible");
+
+        hoverCircleSea
+          .attr("cx", tempX)
+          .attr("cy", seaY)
+          .style("visibility", "visible");
+
+        tooltip
+          .html(`<strong>${year}</strong><br/>Temperature: ${tempData.value.toFixed(2)}°C<br/>Sea Level: ${seaData.value.toFixed(0)}mm`)
+          .style("visibility", "visible");
+
+        const tooltipNode = tooltip.node();
+        const tooltipWidth = tooltipNode.offsetWidth;
+        const tooltipHeight = tooltipNode.offsetHeight;
+
+        const midY = (tempY + seaY) / 2;
+        let left = tempX + 15;
+        let top = midY - tooltipHeight / 2;
+
+        if (left + tooltipWidth > width - marginRight) {
+          left = tempX - tooltipWidth - 15;
+        }
+        if (top < marginTop) top = marginTop;
+        if (top + tooltipHeight > height - marginBottom) top = height - marginBottom - tooltipHeight;
+
+        tooltip
+          .style("left", `${left}px`)
+          .style("top", `${top}px`);
+      }
+    })
+    .on("mouseout", () => {
+      tooltip.style("visibility", "hidden");
+      hoverCircleTemp.style("visibility", "hidden");
+      hoverCircleSea.style("visibility", "hidden");
+    });
 
   if (selectedDashboardYear >= 1880) {
     svg.append("line")
@@ -328,85 +469,42 @@ function tripleAxisChart({width} = {}) {
     }
   }
 
-  if (isMobile) {
-    const legend = svg.append("g")
-      .attr("transform", `translate(${width / 2 - 100}, ${height - 25})`);
+  const legend = svg.append("g")
+    .attr("transform", `translate(${width / 2 - (isMobile ? 95 : 160)}, ${height - (isMobile ? 15 : 12)})`);
 
-    legend.append("line")
-      .attr("x1", 0)
-      .attr("x2", 20)
-      .attr("y1", 0)
-      .attr("y2", 0)
-      .attr("stroke", "#dc2626")
-      .attr("stroke-width", 2);
+  legend.append("line")
+    .attr("x1", 0)
+    .attr("x2", isMobile ? 18 : 25)
+    .attr("y1", 0)
+    .attr("y2", 0)
+    .attr("stroke", "#dc2626")
+    .attr("stroke-width", 2.5);
 
-    legend.append("text")
-      .attr("x", 23)
-      .attr("y", 3)
-      .attr("fill", "currentColor")
-      .attr("font-size", "9px")
-      .text("Temperature (°C)");
+  legend.append("text")
+    .attr("x", isMobile ? 22 : 30)
+    .attr("y", 4)
+    .attr("fill", "currentColor")
+    .attr("font-size", isMobile ? "10px" : "11px")
+    .text(isMobile ? "Temperature" : "Temperature (°C)");
 
-    legend.append("line")
-      .attr("x1", 110)
-      .attr("x2", 130)
-      .attr("y1", 0)
-      .attr("y2", 0)
-      .attr("stroke", "#059669")
-      .attr("stroke-width", 2);
+  legend.append("line")
+    .attr("x1", isMobile ? 95 : 150)
+    .attr("x2", isMobile ? 113 : 175)
+    .attr("y1", 0)
+    .attr("y2", 0)
+    .attr("stroke", "#059669")
+    .attr("stroke-width", 2.5);
 
-    legend.append("text")
-      .attr("x", 133)
-      .attr("y", 3)
-      .attr("fill", "currentColor")
-      .attr("font-size", "9px")
-      .text("Sea Level (mm)");
-  } else {
-    const legend = svg.append("g")
-      .attr("transform", `translate(${width / 2 - 180}, ${height - 20})`);
+  legend.append("text")
+    .attr("x", isMobile ? 117 : 180)
+    .attr("y", 4)
+    .attr("fill", "currentColor")
+    .attr("font-size", isMobile ? "10px" : "11px")
+    .text(isMobile ? "Sea Level" : "Sea Level (mm)");
 
-    legend.append("line")
-      .attr("x1", 0)
-      .attr("x2", 30)
-      .attr("y1", 0)
-      .attr("y2", 0)
-      .attr("stroke", "#dc2626")
-      .attr("stroke-width", 3);
-
-    legend.append("text")
-      .attr("x", 35)
-      .attr("y", 4)
-      .attr("fill", "currentColor")
-      .attr("font-size", "12px")
-      .text("Global Temperature (°C)");
-
-    legend.append("line")
-      .attr("x1", 210)
-      .attr("x2", 240)
-      .attr("y1", 0)
-      .attr("y2", 0)
-      .attr("stroke", "#059669")
-      .attr("stroke-width", 3);
-
-    legend.append("text")
-      .attr("x", 245)
-      .attr("y", 4)
-      .attr("fill", "currentColor")
-      .attr("font-size", "12px")
-      .text("Sea Level Rise (mm)");
-  }
-
-  return svg.node();
+  return container.node();
 }
 ```
-
-<div class="card">
-  ${resize((width) => tripleAxisChart({width}))}
-</div>
-
----
-
-## 🔥 Rate of Change Analysis
 
 ```js
 const tempRateData = globalTempData.slice(1).map((d, i) => ({
@@ -414,10 +512,7 @@ const tempRateData = globalTempData.slice(1).map((d, i) => ({
   rate: (d.value - globalTempData[i].value) * 10
 })).filter(d => d.year >= 1880 && d.year <= 2019);
 
-const seaLevelRateData = csiroData.slice(1).map((d, i) => ({
-  year: d.year,
-  rate: d.value - csiroData[i].value
-})).filter(d => d.year >= 1880 && d.year <= 2019);
+const filteredTempRateData = tempRateData.filter(d => d.year <= selectedDashboardYear);
 ```
 
 ```js
@@ -426,7 +521,7 @@ function rateOfChangeChart({width} = {}) {
 
   return Plot.plot({
     width,
-    height: isMobile ? 350 : 400,
+    height: isMobile ? 350 : 380,
     marginLeft: isMobile ? 50 : 70,
     marginRight: isMobile ? 50 : 70,
     marginBottom: isMobile ? 50 : 40,
@@ -442,42 +537,37 @@ function rateOfChangeChart({width} = {}) {
       label: "Temperature Change (°C/decade)",
       grid: true
     },
-    fy: {
-      label: null
-    },
-    color: {
-      legend: true,
-      domain: ["Temperature", "Sea Level"],
-      range: ["#dc2626", "#059669"]
-    },
     marks: [
       Plot.ruleY([0], {stroke: "#94a3b8", strokeDasharray: "2,2"}),
-      Plot.line(tempRateData, {
+      Plot.line(filteredTempRateData, {
         x: "year",
         y: "rate",
         stroke: "#dc2626",
         strokeWidth: 2,
         curve: "catmull-rom"
       }),
-      Plot.dot(tempRateData, Plot.pointerX({
+      Plot.dot(filteredTempRateData, {
+        x: "year",
+        y: "rate",
+        r: 3,
+        fill: "transparent",
+        stroke: "transparent",
+        tip: true,
+        title: d => `Year: ${d.year}\nRate: ${d.rate.toFixed(3)}°C/decade`
+      }),
+      Plot.ruleX([selectedDashboardYear], {stroke: "#f59e0b", strokeWidth: 2, strokeDasharray: "4,4"}),
+      Plot.dot(filteredTempRateData.filter(d => d.year === selectedDashboardYear), {
         x: "year",
         y: "rate",
         fill: "#dc2626",
-        r: 4,
-        title: d => `${d.year}: ${d.rate >= 0 ? '+' : ''}${d.rate.toFixed(3)}°C/decade`
-      }))
+        stroke: "white",
+        strokeWidth: 2,
+        r: 6
+      })
     ]
   });
 }
 ```
-
-<div class="card">
-  ${resize((width) => rateOfChangeChart({width}))}
-</div>
-
----
-
-## ❄️ Glacier Mass Balance vs Global Temperature
 
 ```js
 const glacierTempData = glaciersData
@@ -487,6 +577,8 @@ const glacierTempData = glaciersData
     temp: globalTempData.find(t => t.year === d.year)?.value
   }))
   .filter(d => d.temp !== undefined);
+
+const filteredGlacierTempData = glacierTempData.filter(d => d.year <= selectedDashboardYear);
 ```
 
 ```js
@@ -495,7 +587,7 @@ function glacierTempScatter({width} = {}) {
 
   return Plot.plot({
     width,
-    height: isMobile ? 350 : 400,
+    height: isMobile ? 350 : 380,
     marginLeft: isMobile ? 50 : 70,
     marginRight: isMobile ? 20 : 40,
     marginBottom: isMobile ? 50 : 60,
@@ -517,33 +609,33 @@ function glacierTempScatter({width} = {}) {
       label: "Year"
     },
     marks: [
-      Plot.dot(glacierTempData, {
+      Plot.dot(filteredGlacierTempData, {
         x: "temp",
         y: "glacier",
         fill: "year",
         r: 4,
         tip: true,
-        title: d => `${d.year}\nTemp: ${d.temp.toFixed(2)}°C\nGlacier: ${d.glacier.toFixed(1)}m`
+        title: d => `Year: ${d.year}\nTemperature: ${d.temp.toFixed(2)}°C\nGlacier Mass: ${d.glacier.toFixed(2)}m`
       }),
-      Plot.linearRegressionY(glacierTempData, {
+      Plot.linearRegressionY(filteredGlacierTempData, {
         x: "temp",
         y: "glacier",
         stroke: "#1f2937",
         strokeWidth: 2,
         strokeDasharray: "4,4"
+      }),
+      Plot.dot(filteredGlacierTempData.filter(d => d.year === selectedDashboardYear), {
+        x: "temp",
+        y: "glacier",
+        fill: "#f59e0b",
+        stroke: "white",
+        strokeWidth: 2,
+        r: 8
       })
     ]
   });
 }
 ```
-
-<div class="card">
-  ${resize((width) => glacierTempScatter({width}))}
-</div>
-
----
-
-## 📈 Decade-by-Decade Comparison
 
 ```js
 const decadeComparison = d3.rollup(
@@ -561,15 +653,18 @@ const decadeData = Array.from(decadeComparison, ([decade, values]) => ({
   temp: values.avgTemp,
   seaLevel: values.avgSeaLevel
 })).sort((a, b) => a.decadeNum - b.decadeNum);
+
+const filteredDecadeData = decadeData.filter(d => d.decadeNum <= Math.floor(selectedDashboardYear / 10) * 10);
 ```
 
 ```js
 function decadeComparisonChart({width} = {}) {
   const isMobile = width < 640;
+  const currentDecade = Math.floor(selectedDashboardYear / 10) * 10;
 
   return Plot.plot({
     width,
-    height: isMobile ? 350 : 400,
+    height: isMobile ? 350 : 380,
     marginLeft: isMobile ? 50 : 70,
     marginRight: isMobile ? 20 : 40,
     marginBottom: isMobile ? 80 : 70,
@@ -588,13 +683,15 @@ function decadeComparisonChart({width} = {}) {
       legend: false
     },
     marks: [
-      Plot.barY(decadeData, {
+      Plot.barY(filteredDecadeData, {
         x: "decade",
         y: "temp",
-        fill: "temp",
-        fillOpacity: 0.8,
+        fill: d => d.decadeNum === currentDecade ? "#f59e0b" : "temp",
+        fillOpacity: d => d.decadeNum === currentDecade ? 1 : 0.8,
+        stroke: d => d.decadeNum === currentDecade ? "white" : "none",
+        strokeWidth: 2,
         tip: true,
-        title: d => `${d.decade}\nAvg Temp: ${d.temp.toFixed(2)}°C\nAvg Sea Level: ${d.seaLevel.toFixed(0)}mm`
+        title: d => `${d.decade}\nAvg Temp: ${d.temp.toFixed(3)}°C\nAvg Sea Level: ${d.seaLevel.toFixed(1)}mm`
       }),
       Plot.ruleY([0])
     ]
@@ -602,13 +699,29 @@ function decadeComparisonChart({width} = {}) {
 }
 ```
 
-<div class="card">
-  ${resize((width) => decadeComparisonChart({width}))}
+<div class="chart-grid">
+  <div class="chart-container">
+    <h3>Combined Climate Indicators (1880-2019)</h3>
+    ${resize((width) => tripleAxisChart({width}))}
+  </div>
+
+  <div class="chart-container">
+    <h3>Rate of Change Analysis</h3>
+    ${resize((width) => rateOfChangeChart({width}))}
+  </div>
+
+  <div class="chart-container">
+    <h3>Glacier Mass Balance vs Global Temperature</h3>
+    ${resize((width) => glacierTempScatter({width}))}
+  </div>
+
+  <div class="chart-container">
+    <h3>Decade-by-Decade Comparison</h3>
+    ${resize((width) => decadeComparisonChart({width}))}
+  </div>
 </div>
 
----
-
-## 📊 Key Insights
+## Key Insights
 
 - **Temperature Rise**: Global temperatures have increased by **${tempChange.toFixed(2)}°C** since 1880
 - **Sea Level Rise**: Oceans have risen by **${seaLevelChange.toFixed(0)}mm** over the same period
