@@ -7,29 +7,28 @@ toc: false
 .hero {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  text-align: center;
-  padding: 3rem 2rem;
+  padding: 0.75rem 1rem;
   background: var(--theme-background-alt);
   color: var(--theme-foreground);
-  border-radius: 16px;
-  margin-bottom: 2rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
   border: 2px solid var(--theme-foreground-faint);
   overflow-anchor: none !important;
 }
 
 .hero h1 {
   margin: 0;
-  font-size: 3rem;
-  font-weight: 900;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: var(--theme-foreground-alt);
   max-width: 100%;
 }
 
 .hero p {
-  margin: 1rem 0 0;
-  font-size: 1.2rem;
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
   color: var(--theme-foreground-muted);
   max-width: 100%;
 }
@@ -54,7 +53,7 @@ body {
 .chart-container {
   overflow-anchor: none !important;
   contain: layout style paint;
-  min-height: 450px;
+  min-height: 280px;
 }
 
 .chart-grid {
@@ -65,53 +64,145 @@ svg, svg * {
   overflow-anchor: none !important;
 }
 
-.stat-grid {
+.dashboard-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: 210px 1fr;
   gap: 1rem;
-  margin: 2rem 0;
+  margin: 0;
   overflow-anchor: none !important;
+  max-height: 100vh;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-right: 0.5rem;
+  border-right: 1px solid var(--theme-foreground-faint);
 }
 
 .stat-card {
   background: var(--theme-background-alt);
   border: 2px solid var(--theme-foreground-faint);
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
+  border-radius: 6px;
+  padding: 0.75rem;
+  text-align: left;
   overflow-anchor: none !important;
 }
 
 .stat-value {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 900;
   color: var(--theme-foreground-alt);
-  margin: 0.5rem 0;
+  margin: 0.2rem 0;
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   color: var(--theme-foreground-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
 .stat-change {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 0.2rem;
+  color: var(--theme-foreground-muted);
 }
 
 .positive { color: #dc2626; }
 .negative { color: #059669; }
 
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: calc(100vh - 80px);
+  background: white;
+  border: 1px solid var(--theme-foreground-faint);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
 .chart-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin: 2rem 0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
   overflow-anchor: none !important;
   contain: layout;
+}
+
+.chart-grid .chart-container {
+  border: none;
+  border-radius: 0;
+  position: relative;
+}
+
+.chart-grid .chart-container:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #e5e7eb;
+}
+
+.chart-large {
+  min-height: 380px !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.chart-large::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.chart-wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1200px) {
+  .chart-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-bottom: 1px solid var(--theme-foreground-faint);
+    padding-right: 0;
+    padding-bottom: 0.75rem;
+  }
+
+  .controls-section {
+    width: 100%;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 180px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -119,21 +210,46 @@ svg, svg * {
     grid-template-columns: 1fr;
   }
 
+  .chart-grid .chart-container:not(:last-child)::after {
+    width: 100%;
+    height: 1px;
+    right: auto;
+    left: 0;
+    top: auto;
+    bottom: 0;
+  }
+
   .chart-container {
-    min-height: 400px;
+    min-height: 280px;
+  }
+
+  .sidebar {
+    flex-direction: column;
+  }
+
+  .stat-card {
+    min-width: auto;
+  }
+
+  .dashboard-layout {
+    max-height: none;
+  }
+
+  .main-content {
+    max-height: none;
   }
 }
 
 .chart-container {
   background: white;
-  border: 1px solid var(--theme-foreground-faint);
-  border-radius: 8px;
-  padding: 1rem;
+  border: none;
+  border-radius: 0;
+  padding: 0.75rem;
 }
 
 .chart-container h3 {
   margin: 0 0 0.5rem 0;
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--theme-foreground);
   overflow-anchor: none !important;
@@ -143,14 +259,80 @@ svg, svg * {
   overflow-anchor: none !important;
 }
 
+.controls-section {
+  background: var(--theme-background-alt);
+  border: 2px solid var(--theme-foreground-faint);
+  border-radius: 6px;
+  padding: 0.65rem;
+}
+
+.controls-section h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--theme-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.insights-section {
+  background: var(--theme-background-alt);
+  border: 2px solid var(--theme-foreground-faint);
+  border-radius: 6px;
+  padding: 0.65rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.insights-section h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--theme-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.insights-section ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  list-style-type: none;
+}
+
+.insights-section li {
+  margin-bottom: 0.5rem;
+  position: relative;
+  padding-left: 0.5rem;
+}
+
+.insights-section li::before {
+  content: "•";
+  position: absolute;
+  left: -0.5rem;
+  color: var(--theme-foreground-focus);
+  font-weight: bold;
+}
+
+.insights-section li:last-child {
+  margin-bottom: 0;
+}
+
+.insights-section .data-sources {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--theme-foreground-faint);
+  font-size: 0.65rem;
+  color: var(--theme-foreground-muted);
+}
+
 form, form * {
   overflow-anchor: none !important;
 }
 </style>
 
 <div class="hero">
-  <h1>🌍 Global Warming Effects</h1>
-  <p>Interactive dashboard showing the interconnected impacts of climate change across multiple environmental indicators</p>
+  <h1>Global Warming Effects Dashboard</h1>
+  <p>Interactive visualization of interconnected climate change impacts across multiple environmental indicators (1880-2019)</p>
 </div>
 
 ```js
@@ -197,30 +379,10 @@ const baselineGlacier = glaciersData.find(d => d.year === 1956).value;
 const glacierChange = latestGlacier - baselineGlacier;
 ```
 
-<div class="stat-grid">
-  <div class="stat-card">
-    <div class="stat-label">Temperature Rise</div>
-    <div class="stat-value positive">+${tempChange.toFixed(2)}°C</div>
-    <div class="stat-change">Since ${baselineYear}</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Sea Level Rise</div>
-    <div class="stat-value positive">+${seaLevelChange.toFixed(0)}mm</div>
-    <div class="stat-change">Since ${baselineYear}</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Glacier Mass Loss</div>
-    <div class="stat-value negative">${glacierChange.toFixed(1)}m</div>
-    <div class="stat-change">Since 1956</div>
-  </div>
-</div>
-
-## Climate Indicators Dashboard
-
 ```js
 function Scrubber(values, {format = value => value, initial = 0, direction = 1, delay = null, autoplay = true, loop = true, loopDelay = null, alternate = false} = {}) {
   values = Array.from(values);
-  const form = html`<form style="font: 12px var(--sans-serif); display: flex; height: 33px; align-items: center;"><button name=b type=button style="margin-right: 0.4em; width: 5em;"></button><label style="display: flex; align-items: center;"><input name=i type=range min=0 max=${values.length - 1} value=${initial} step=1 style="width: 180px;"><output name=o style="margin-left: 0.4em;"></output></label></form>`;
+  const form = html`<form style="font: 10px var(--sans-serif); display: flex; flex-direction: column; gap: 0.5rem;"><button name=b type=button style="width: 100%; padding: 0.3rem; font-size: 10px;"></button><label style="display: flex; flex-direction: column; gap: 0.25rem;"><input name=i type=range min=0 max=${values.length - 1} value=${initial} step=1 style="width: 100%;"><output name=o style="font-size: 11px; font-weight: 600; text-align: center;"></output></label></form>`;
   let frame = null, timer = null, interval = null;
   const start = () => { form.b.textContent = "Pause"; if (delay === null) frame = requestAnimationFrame(tick); else interval = setInterval(tick, delay); };
   const stop = () => { form.b.textContent = "Play"; if (frame !== null) cancelAnimationFrame(frame), frame = null; if (timer !== null) clearTimeout(timer), timer = null; if (interval !== null) clearInterval(interval), interval = null; };
@@ -236,6 +398,11 @@ function Scrubber(values, {format = value => value, initial = 0, direction = 1, 
 }
 ```
 
+<div class="dashboard-layout">
+  <div class="sidebar">
+    <div class="controls-section">
+      <h3>Timeline</h3>
+
 ```js
 const dashboardYears = d3.range(1880, 2020);
 const selectedDashboardYear = view(Scrubber(dashboardYears, {
@@ -247,6 +414,40 @@ const selectedDashboardYear = view(Scrubber(dashboardYears, {
 }));
 ```
 
+  </div>
+    <div class="stat-card">
+      <div class="stat-label">Temperature Rise</div>
+      <div class="stat-value positive">+${tempChange.toFixed(2)}°C</div>
+      <div class="stat-change">Since ${baselineYear}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sea Level Rise</div>
+      <div class="stat-value positive">+${seaLevelChange.toFixed(0)}mm</div>
+      <div class="stat-change">Since ${baselineYear}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Glacier Mass Loss</div>
+      <div class="stat-value negative">${glacierChange.toFixed(1)}m</div>
+      <div class="stat-change">Since 1956</div>
+    </div>
+    <div class="insights-section">
+      <h3>Key Insights</h3>
+      <ul>
+        <li><strong>Temperature Rise:</strong> Global temperatures have increased by <strong>${tempChange.toFixed(2)}°C</strong> since 1880</li>
+        <li><strong>Sea Level Rise:</strong> Oceans have risen by <strong>${seaLevelChange.toFixed(0)}mm</strong> over the same period</li>
+        <li><strong>Glacier Loss:</strong> Reference glaciers have lost <strong>${Math.abs(glacierChange).toFixed(1)} meters</strong> of water equivalent since 1956</li>
+        <li><strong>Acceleration:</strong> The rate of change is increasing across all indicators</li>
+        <li><strong>Correlation:</strong> Strong positive relationship between temperature rise and both sea level increase and glacier mass loss</li>
+      </ul>
+      <div class="data-sources">
+        <strong>Data Sources:</strong> NASA GISTEMP, CSIRO, WGMS, EPA
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+
 ```js
 const filteredTemp = globalTempData.filter(d => d.year <= selectedDashboardYear);
 const filteredSeaLevel = csiroData.filter(d => d.year <= selectedDashboardYear);
@@ -255,11 +456,11 @@ const filteredSeaLevel = csiroData.filter(d => d.year <= selectedDashboardYear);
 ```js
 function tripleAxisChart({width} = {}) {
   const isMobile = width < 640;
-  const height = isMobile ? 400 : 420;
-  const marginTop = 30;
-  const marginRight = isMobile ? 55 : 70;
-  const marginBottom = isMobile ? 90 : 80;
-  const marginLeft = isMobile ? 55 : 70;
+  const height = isMobile ? 320 : 340;
+  const marginTop = 20;
+  const marginRight = isMobile ? 45 : 55;
+  const marginBottom = isMobile ? 60 : 50;
+  const marginLeft = isMobile ? 45 : 55;
 
   const xScale = d3.scaleLinear()
     .domain([1880, 2019])
@@ -521,10 +722,10 @@ function rateOfChangeChart({width} = {}) {
 
   return Plot.plot({
     width,
-    height: isMobile ? 350 : 380,
-    marginLeft: isMobile ? 50 : 70,
-    marginRight: isMobile ? 50 : 70,
-    marginBottom: isMobile ? 50 : 40,
+    height: isMobile ? 260 : 240,
+    marginLeft: isMobile ? 40 : 50,
+    marginRight: isMobile ? 40 : 50,
+    marginBottom: isMobile ? 40 : 30,
     style: {
       fontSize: isMobile ? "11px" : "13px"
     },
@@ -587,10 +788,10 @@ function glacierTempScatter({width} = {}) {
 
   return Plot.plot({
     width,
-    height: isMobile ? 350 : 380,
-    marginLeft: isMobile ? 50 : 70,
-    marginRight: isMobile ? 20 : 40,
-    marginBottom: isMobile ? 50 : 60,
+    height: isMobile ? 260 : 240,
+    marginLeft: isMobile ? 40 : 50,
+    marginRight: isMobile ? 20 : 30,
+    marginBottom: isMobile ? 40 : 45,
     style: {
       fontSize: isMobile ? "11px" : "13px"
     },
@@ -664,10 +865,10 @@ function decadeComparisonChart({width} = {}) {
 
   return Plot.plot({
     width,
-    height: isMobile ? 350 : 380,
-    marginLeft: isMobile ? 50 : 70,
-    marginRight: isMobile ? 20 : 40,
-    marginBottom: isMobile ? 80 : 70,
+    height: isMobile ? 260 : 240,
+    marginLeft: isMobile ? 40 : 50,
+    marginRight: isMobile ? 20 : 30,
+    marginBottom: isMobile ? 60 : 55,
     style: {
       fontSize: isMobile ? "11px" : "13px"
     },
@@ -699,34 +900,28 @@ function decadeComparisonChart({width} = {}) {
 }
 ```
 
-<div class="chart-grid">
-  <div class="chart-container">
-    <h3>Combined Climate Indicators (1880-2019)</h3>
-    ${resize((width) => tripleAxisChart({width}))}
-  </div>
+<div class="chart-container chart-large">
+  <h3>Combined Climate Indicators (1880-2019)</h3>
+  ${resize((width) => tripleAxisChart({width}))}
+</div>
 
+<div class="chart-grid">
   <div class="chart-container">
     <h3>Rate of Change Analysis</h3>
     ${resize((width) => rateOfChangeChart({width}))}
   </div>
 
   <div class="chart-container">
-    <h3>Glacier Mass Balance vs Global Temperature</h3>
+    <h3>Glacier vs Temperature</h3>
     ${resize((width) => glacierTempScatter({width}))}
   </div>
 
   <div class="chart-container">
-    <h3>Decade-by-Decade Comparison</h3>
+    <h3>Decade Comparison</h3>
     ${resize((width) => decadeComparisonChart({width}))}
   </div>
 </div>
 
-## Key Insights
+  </div>
+</div>
 
-- **Temperature Rise**: Global temperatures have increased by **${tempChange.toFixed(2)}°C** since 1880
-- **Sea Level Rise**: Oceans have risen by **${seaLevelChange.toFixed(0)}mm** over the same period
-- **Glacier Loss**: Reference glaciers have lost **${Math.abs(glacierChange).toFixed(1)} meters** of water equivalent since 1956
-- **Acceleration**: The rate of change is increasing across all indicators
-- **Correlation**: Strong positive relationship between temperature rise and both sea level increase and glacier mass loss
-
-**Data Sources**: NASA GISTEMP, CSIRO, WGMS, EPA
