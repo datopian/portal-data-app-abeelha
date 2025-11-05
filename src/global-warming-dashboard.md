@@ -380,6 +380,7 @@ const glacierChange = latestGlacier - baselineGlacier;
 ```
 
 ```js
+// This function was implemented manually because ObservableHQ framework doesnt have the necessary lib for the framework, the lib only works in their notebook*...
 function Scrubber(values, {format = value => value, initial = 0, direction = 1, delay = null, autoplay = true, loop = true, loopDelay = null, alternate = false} = {}) {
   values = Array.from(values);
   const form = html`<form style="font: 10px var(--sans-serif); display: flex; flex-direction: column; gap: 0.5rem;"><button name=b type=button style="width: 100%; padding: 0.3rem; font-size: 10px;"></button><label style="display: flex; flex-direction: column; gap: 0.25rem;"><input name=i type=range min=0 max=${values.length - 1} value=${initial} step=1 style="width: 100%;"><output name=o style="font-size: 11px; font-weight: 600; text-align: center;"></output></label></form>`;

@@ -96,6 +96,7 @@ const topPerCapita = latestYearData
 ```
 
 ```js
+// This function was implemented manually because ObservableHQ framework doesnt have the necessary lib for the framework, the lib only works in their notebook*...
 function Scrubber(values, {format = value => value, initial = 0, direction = 1, delay = null, autoplay = true, loop = true, loopDelay = null, alternate = false} = {}) {
   values = Array.from(values);
   const form = html`<form style="font: 12px var(--sans-serif); display: flex; height: 33px; align-items: center;"><button name=b type=button style="margin-right: 0.4em; width: 5em;"></button><label style="display: flex; align-items: center;"><input name=i type=range min=0 max=${values.length - 1} value=${initial} step=1 style="width: 180px;"><output name=o style="margin-left: 0.4em;"></output></label></form>`;
