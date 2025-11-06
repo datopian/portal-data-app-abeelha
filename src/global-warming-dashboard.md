@@ -441,7 +441,7 @@ const selectedDashboardYear = view(Scrubber(dashboardYears, {
         <li><strong>Correlation:</strong> Strong positive relationship between temperature rise and both sea level increase and glacier mass loss</li>
       </ul>
       <div class="data-sources">
-        <strong>Data Sources:</strong> NASA GISTEMP, CSIRO, WGMS, EPA
+        <strong>Data Sources:</strong> <a href="https://datahub.io" target="_blank" rel="noopener noreferrer">Datahub.io</a> - <a href="https://datahub.io/core/global-temp" target="_blank" rel="noopener noreferrer">NASA GISTEMP</a>, <a href="https://datahub.io/core/sea-level-rise" target="_blank" rel="noopener noreferrer">CSIRO</a>, <a href="https://datahub.io/core/glacier-mass-balance" target="_blank" rel="noopener noreferrer">WGMS</a>, EPA
       </div>
     </div>
   </div>
