@@ -8,3 +8,27 @@
   --theme-foreground-alt: #313131;
 }
 
+footer {
+  width: 100% !important;
+}
+
+footer nav {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+footer nav a {
+  flex: 0 0 auto !important;
+}
+
+footer nav a:first-child {
+  margin-right: auto !important;
+}
+
+footer nav a:last-child {
+  margin-left: auto !important;
+}
+

@@ -442,7 +442,7 @@ const yearAvgPerCountry = (yearGlobalTotal / yearCountriesCount).toFixed(1);
       <li><strong>Concentration:</strong> Top 5 countries consistently account for majority of emissions</li>
     </ul>
     <div class="data-sources">
-      <strong>Data:</strong> CDIAC, 1751-2020
+      <strong>Data:</strong> <a href="https://datahub.io/core/co2-fossil-by-nation" target="_blank" rel="noopener noreferrer">CDIAC, 1751-2020</a>
     </div>
   </div>
   </div>

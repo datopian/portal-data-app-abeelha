@@ -163,8 +163,8 @@ Satellite data are based solely on measured sea level, while the long-term tide 
   - Web: http://www.cmar.csiro.au/sealevel/GMSL_SG_2011_up.html
 
 - **Satellite**
-  - Name: Satellite Altimetry Data
-  - Web: CSIRO satellite altimetry measurements
+  - Name: Satellite csiro Altimetry Data
+  - Web: https://www.cmar.csiro.au/sealevel/sl_meas_sat_alt.html
 ---
 
 ## Sea Level Change Over Time
