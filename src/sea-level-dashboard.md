@@ -56,7 +56,7 @@ svg rect, svg path, svg circle, svg text {
 </style>
 
 <div class="hero">
-  <h1>🌊 Global Mean Sea Level Rise Dashboard</h1>
+  <h1>Global Mean Sea Level Rise Data Story</h1>
   <p>This data contains cumulative changes in sea level for the world’s oceans since 1880, based on a combination of long-term tide gauge measurements and recent satellite measurements.</p>
 </div>
 

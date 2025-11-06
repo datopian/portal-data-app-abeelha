@@ -31,9 +31,9 @@ Explore the interactive data stories below:
     <a href="/co2-emissions-nations" style="color: var(--theme-foreground-focus);">View visualization →</a>
   </div>
   <div class="card" style="padding: 2rem;">
-    <h3 style="margin-top: 0;">🌡️ <a href="/co2-mauna-loa" style="text-decoration: none; color: inherit;">The Keeling Curve</a></h3>
+    <h3 style="margin-top: 0;">🌡️ <a href="/co2-monitoring" style="text-decoration: none; color: inherit;">Atmospheric CO₂ Monitoring</a></h3>
     <p>Witness atmospheric CO₂ concentration measurements from Mauna Loa Observatory since 1958. The iconic "Keeling Curve" shows our planet's changing atmosphere in real-time.</p>
-    <a href="/co2-mauna-loa" style="color: var(--theme-foreground-focus);">View visualization →</a>
+    <a href="/co2-monitoring" style="color: var(--theme-foreground-focus);">View dashboard →</a>
   </div>
 </div>
 
