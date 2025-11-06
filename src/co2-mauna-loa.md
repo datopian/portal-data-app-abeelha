@@ -85,7 +85,7 @@ const firstReading = co2Data[0];
 
 ---
 
-## 📊 Atmospheric CO₂ Concentration Over Time
+## Atmospheric CO₂ Concentration Over Time
 
 The famous Keeling Curve showing the relentless rise of atmospheric CO₂ from 1958 to present, measured at Mauna Loa Observatory. The zigzag pattern shows seasonal variations caused by Northern Hemisphere vegetation cycles.
 
@@ -239,7 +239,7 @@ function co2Timeline({width} = {}) {
   ${resize((width) => co2Timeline({width}))}
 </div>
 
-## 🔍 Understanding the Data
+## Understanding the Data
 
 **Light Blue Line (Monthly Measurements):** Shows actual monthly average CO₂ readings with visible seasonal oscillations. The zigzag pattern is caused by Northern Hemisphere vegetation absorbing CO₂ during summer growth and releasing it during winter decay.
 
