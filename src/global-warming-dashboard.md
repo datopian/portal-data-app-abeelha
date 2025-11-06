@@ -68,9 +68,9 @@ svg, svg * {
   display: grid;
   grid-template-columns: 210px 1fr;
   gap: 1rem;
-  margin: 0;
+  margin: 0 0 3rem 0;
   overflow-anchor: none !important;
-  max-height: 100vh;
+  min-height: 0;
 }
 
 .sidebar {
@@ -119,11 +119,11 @@ svg, svg * {
   display: flex;
   flex-direction: column;
   gap: 0;
-  max-height: calc(100vh - 80px);
+  min-height: 400px;
   background: white;
   border: 1px solid var(--theme-foreground-faint);
   border-radius: 6px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .chart-grid {
@@ -792,7 +792,7 @@ function glacierTempScatter({width} = {}) {
     height: isMobile ? 260 : 240,
     marginLeft: isMobile ? 40 : 50,
     marginRight: isMobile ? 20 : 30,
-    marginBottom: isMobile ? 40 : 45,
+    marginBottom: isMobile ? 55 : 65,
     style: {
       fontSize: isMobile ? "11px" : "13px"
     },
@@ -869,7 +869,7 @@ function decadeComparisonChart({width} = {}) {
     height: isMobile ? 260 : 240,
     marginLeft: isMobile ? 40 : 50,
     marginRight: isMobile ? 20 : 30,
-    marginBottom: isMobile ? 60 : 55,
+    marginBottom: isMobile ? 65 : 65,
     style: {
       fontSize: isMobile ? "11px" : "13px"
     },

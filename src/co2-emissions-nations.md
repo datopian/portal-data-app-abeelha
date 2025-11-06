@@ -70,9 +70,9 @@ svg, svg * {
   display: grid;
   grid-template-columns: 210px 1fr;
   gap: 1rem;
-  margin: 0;
+  margin: 0 0 4rem 0;
   overflow-anchor: none !important;
-  max-height: 100vh;
+  min-height: 0;
 }
 
 .sidebar {
@@ -122,11 +122,11 @@ svg, svg * {
   display: flex;
   flex-direction: column;
   gap: 0;
-  max-height: calc(100vh - 80px);
+  min-height: 400px;
   background: white;
   border: 1px solid var(--theme-foreground-faint);
   border-radius: 6px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .chart-grid {
